@@ -32,4 +32,18 @@ public class AuthController {
             return ResponseEntity.status(401).body(e.getMessage());
         }
     }
+
+    @Autowired
+    private com.example.unipathapi.util.SecurityUtil securityUtil;
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@jakarta.validation.Valid @RequestBody com.example.unipathapi.dto.request.ChangePasswordRequest request,
+                                            jakarta.servlet.http.HttpServletRequest httpRequest) {
+        try {
+            Integer userId = securityUtil.getCurrentUserId(httpRequest);
+            return ResponseEntity.ok(authService.changePassword(userId, request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
