@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,13 +37,16 @@ public class ApplicationService {
     private UserRepository userRepository;
 
     @Autowired
+    private CompanyMemberRepository memberRepository;
+
+    @Autowired
     private CandidateProfileRepository candidateProfileRepository;
 
     @Autowired
     private NotificationRepository notificationRepository;
 
-    public CheckAppliedResponse checkApplied(Integer jobId, Integer studentId) {
-        Optional<Application> app = applicationRepository.findTopByJobIdAndStudentIdOrderByAppliedAtDesc(jobId, studentId);
+    public CheckAppliedResponse checkApplied(Integer jobId, Integer candidateId) {
+        Optional<Application> app = applicationRepository.findTopByJobIdAndCandidateIdOrderByAppliedAtDesc(jobId, candidateId);
         if (app.isPresent()) {
             return CheckAppliedResponse.builder()
                     .applied(true)
@@ -58,7 +60,7 @@ public class ApplicationService {
     }
 
     @Transactional
-    public ApplicationResponse applyJob(Integer studentId, ApplicationRequest request, MultipartFile cvFile) {
+    public ApplicationResponse applyJob(Integer candidateId, ApplicationRequest request, MultipartFile cvFile) {
         Job job = jobRepository.findById(request.getJobId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng"));
 
@@ -66,16 +68,16 @@ public class ApplicationService {
             throw new RuntimeException("Tin tuyển dụng này đã đóng hoặc chưa được duyệt");
         }
 
-        User student = userRepository.findById(studentId)
+        User candidate = userRepository.findById(candidateId)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        if (applicationRepository.existsByJobIdAndStudentId(request.getJobId(), studentId)) {
+        if (applicationRepository.existsByJobIdAndCandidateId(request.getJobId(), candidateId)) {
             throw new RuntimeException("Bạn đã ứng tuyển vị trí này");
         }
 
         Application application = new Application();
         application.setJob(job);
-        application.setStudent(student);
+        application.setCandidate(candidate);
         application.setStatus("SUBMITTED");
 
         if (cvFile != null && !cvFile.isEmpty()) {
@@ -113,11 +115,11 @@ public class ApplicationService {
         return buildApplicationResponse(saved);
     }
 
-    public void withdrawApplication(Integer applicationId, Integer studentId) {
+    public void withdrawApplication(Integer applicationId, Integer candidateId) {
         Application application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new RuntimeException("Hồ sơ ứng tuyển không tồn tại"));
 
-        if (!application.getStudent().getId().equals(studentId)) {
+        if (!application.getCandidate().getId().equals(candidateId)) {
             throw new RuntimeException("Bạn không có quyền rút hồ sơ này");
         }
 
@@ -128,8 +130,8 @@ public class ApplicationService {
         applicationRepository.delete(application);
     }
 
-    public List<ApplicationResponse> getMyApplications(Integer studentId, String status) {
-        List<Application> applications = applicationRepository.findByStudentIdAndOptionalStatus(studentId, status);
+    public List<ApplicationResponse> getMyApplications(Integer candidateId, String status) {
+        List<Application> applications = applicationRepository.findByCandidateIdAndOptionalStatus(candidateId, status);
         return applications.stream().map(this::buildApplicationResponse).collect(Collectors.toList());
     }
 
@@ -137,9 +139,7 @@ public class ApplicationService {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng"));
 
-        if (!job.getCompany().getUser().getId().equals(employerUserId)) {
-            throw new RuntimeException("Bạn không có quyền xem danh sách ứng viên của tin tuyển dụng này");
-        }
+        validateEmployerCompanyMember(job.getCompany().getId(), employerUserId);
 
         List<Application> applications = applicationRepository.findByJobIdAndOptionalStatus(jobId, status);
         return applications.stream().map(this::buildApplicationResponse).collect(Collectors.toList());
@@ -150,16 +150,14 @@ public class ApplicationService {
         Application application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new RuntimeException("Hồ sơ ứng tuyển không tồn tại"));
 
-        if (!application.getJob().getCompany().getUser().getId().equals(employerUserId)) {
-            throw new RuntimeException("Bạn không có quyền cập nhật trạng thái hồ sơ này");
-        }
+        validateEmployerCompanyMember(application.getJob().getCompany().getId(), employerUserId);
 
         application.setStatus(request.getStatus());
         Application saved = applicationRepository.save(application);
 
         // Tạo thông báo cho candidate
         Notification notification = new Notification();
-        notification.setUser(application.getStudent());
+        notification.setUser(application.getCandidate());
         notification.setTitle("Cập nhật trạng thái ứng tuyển");
         notification.setMessage("Hồ sơ ứng tuyển vị trí '" + application.getJob().getTitle() + 
                 "' của bạn đã được chuyển sang trạng thái: " + request.getStatus() + 
@@ -173,8 +171,8 @@ public class ApplicationService {
         Application application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new RuntimeException("Hồ sơ ứng tuyển không tồn tại"));
 
-        boolean isApplicant = application.getStudent().getId().equals(currentUserId);
-        boolean isEmployer = application.getJob().getCompany().getUser().getId().equals(currentUserId);
+        boolean isApplicant = application.getCandidate().getId().equals(currentUserId);
+        boolean isEmployer = memberRepository.existsByCompanyIdAndUserId(application.getJob().getCompany().getId(), currentUserId);
 
         if (!isApplicant && !isEmployer) {
             throw new RuntimeException("Bạn không có quyền tải file CV này");
@@ -203,18 +201,24 @@ public class ApplicationService {
                 .orElseThrow(() -> new RuntimeException("Hồ sơ ứng tuyển không tồn tại"));
     }
 
+    private void validateEmployerCompanyMember(Integer companyId, Integer userId) {
+        if (!memberRepository.existsByCompanyIdAndUserId(companyId, userId)) {
+            throw new RuntimeException("Bạn không phải thành viên của công ty này");
+        }
+    }
+
     private ApplicationResponse buildApplicationResponse(Application app) {
-        String studentName = candidateProfileRepository.findById(app.getStudent().getId())
-                .map(CandidateProfile::getFullName).orElse(app.getStudent().getEmail());
+        String studentName = candidateProfileRepository.findById(app.getCandidate().getId())
+                .map(CandidateProfile::getFullName).orElse(app.getCandidate().getEmail());
 
         return ApplicationResponse.builder()
                 .id(app.getId())
                 .jobId(app.getJob().getId())
                 .jobTitle(app.getJob().getTitle())
                 .companyName(app.getJob().getCompany() != null ? app.getJob().getCompany().getCompanyName() : null)
-                .studentId(app.getStudent().getId())
+                .studentId(app.getCandidate().getId())
                 .studentName(studentName)
-                .studentEmail(app.getStudent().getEmail())
+                .studentEmail(app.getCandidate().getEmail())
                 .cvUrl(app.getCvUrl())
                 .cvFilename(app.getCvFilename())
                 .cvFileType(app.getCvFileType())

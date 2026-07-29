@@ -21,8 +21,8 @@ public class Application {
     private Job job;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id")
-    private User student;
+    @JoinColumn(name = "candidate_id")
+    private User candidate;
 
     @Column(name = "cv_url", columnDefinition = "TEXT")
     private String cvUrl;

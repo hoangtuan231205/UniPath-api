@@ -44,4 +44,18 @@ public class AuthService {
         String token = jwtUtil.generateToken(user.getId(), user.getRole());
         return new AuthResponse(token, String.valueOf(user.getId()), user.getRole(), "Đăng nhập thành công!");
     }
+
+    @Transactional
+    public String changePassword(Integer userId, com.example.unipathapi.dto.request.ChangePasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+        if (!user.getPassword().equals(request.getOldPassword())) {
+            throw new RuntimeException("Mật khẩu cũ không chính xác!");
+        }
+
+        user.setPassword(request.getNewPassword());
+        userRepository.save(user);
+        return "Đổi mật khẩu thành công!";
+    }
 }
