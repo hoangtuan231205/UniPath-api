@@ -3,6 +3,8 @@ package com.example.unipathapi.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Data
 @Getter
 @Setter
@@ -16,20 +18,35 @@ public class Company {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Liên kết nhiều công ty về một người tạo (User sở hữu vai trò Employer/Admin)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
     @Column(name = "company_name", nullable = false)
     private String companyName;
 
     @Column(name = "company_scale", length = 50)
-    private String companyScale; // Nhận giá trị 'ENTERPRISE' hoặc 'SME' theo ràng buộc DB
+    private String companyScale; // 'ENTERPRISE' hoặc 'SME'
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "website")
     private String website;
+
+    @Column(name = "tax_code", length = 20, unique = true)
+    private String taxCode;
+
+    @Column(name = "status", length = 20, nullable = false)
+    private String status = "APPROVED"; // 'PENDING', 'APPROVED', 'REJECTED'
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private User approvedBy;
+
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 }
