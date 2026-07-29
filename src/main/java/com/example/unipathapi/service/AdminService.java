@@ -3,6 +3,7 @@ package com.example.unipathapi.service;
 import com.example.unipathapi.dto.request.CategoryRequest;
 import com.example.unipathapi.dto.request.ReportRequest;
 import com.example.unipathapi.dto.request.ReportResolveRequest;
+import com.example.unipathapi.dto.request.ReviewJoinRequestDTO;
 import com.example.unipathapi.dto.request.SkillRequest;
 import com.example.unipathapi.dto.response.AdminStatsResponse;
 import com.example.unipathapi.dto.response.AdminUserResponse;
@@ -141,10 +142,17 @@ public class AdminService {
         } else if ("BAN_ACCOUNT".equalsIgnoreCase(action)) {
             report.setStatus("RESOLVED");
             if (report.getJob() != null && report.getJob().getCompany() != null) {
-                User owner = report.getJob().getCompany().getUser();
-                if (!"ADMIN".equalsIgnoreCase(owner.getRole())) {
-                    owner.setIsActive(false);
-                    userRepository.save(owner);
+                Company company = report.getJob().getCompany();
+                if (company.getCreatedBy() != null && !"ADMIN".equalsIgnoreCase(company.getCreatedBy().getRole())) {
+                    company.getCreatedBy().setIsActive(false);
+                    userRepository.save(company.getCreatedBy());
+                }
+                List<CompanyMember> members = memberRepository.findByCompanyId(company.getId());
+                for (CompanyMember member : members) {
+                    if (!"ADMIN".equalsIgnoreCase(member.getUser().getRole())) {
+                        member.getUser().setIsActive(false);
+                        userRepository.save(member.getUser());
+                    }
                 }
             }
         } else {
@@ -232,6 +240,74 @@ public class AdminService {
                 .totalEmployers(totalEmployers)
                 .activeJobs(activeJobs)
                 .applicationStatusCounts(statusCounts)
+                .build();
+    }
+
+    // --- COMPANY APPROVALS (SYSTEM ADMIN) ---
+    @Autowired
+    private CompanyRepository companyRepository;
+
+    @Autowired
+    private CompanyMemberRepository memberRepository;
+
+    public List<com.example.unipathapi.dto.response.CompanyResponse> getPendingCompanies() {
+        List<Company> pendingCompanies = companyRepository.findByStatus("PENDING");
+        return pendingCompanies.stream()
+                .map(comp -> com.example.unipathapi.dto.response.CompanyResponse.builder()
+                        .id(comp.getId())
+                        .companyName(comp.getCompanyName())
+                        .taxCode(comp.getTaxCode())
+                        .companyScale(comp.getCompanyScale())
+                        .description(comp.getDescription())
+                        .website(comp.getWebsite())
+                        .status(comp.getStatus())
+                        .createdById(comp.getCreatedBy() != null ? comp.getCreatedBy().getId() : null)
+                        .createdByEmail(comp.getCreatedBy() != null ? comp.getCreatedBy().getEmail() : null)
+                        .createdAt(comp.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public com.example.unipathapi.dto.response.CompanyResponse reviewCompanyProposal(Integer companyId, Integer adminUserId, ReviewJoinRequestDTO dto) {
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new RuntimeException("Công ty không tồn tại"));
+
+        User admin = userRepository.findById(adminUserId)
+                .orElseThrow(() -> new RuntimeException("Tài khoản admin không tồn tại"));
+
+        if ("APPROVE".equalsIgnoreCase(dto.getAction())) {
+            company.setStatus("APPROVED");
+            company.setApprovedBy(admin);
+            company.setApprovedAt(LocalDateTime.now());
+
+            if (company.getCreatedBy() != null) {
+                if (!memberRepository.existsByCompanyIdAndUserId(company.getId(), company.getCreatedBy().getId())) {
+                    CompanyMember companyAdmin = new CompanyMember(company, company.getCreatedBy(), "COMPANY_ADMIN");
+                    memberRepository.save(companyAdmin);
+                }
+            }
+        } else if ("REJECT".equalsIgnoreCase(dto.getAction())) {
+            company.setStatus("REJECTED");
+        } else {
+            throw new RuntimeException("Hành động không hợp lệ (APPROVE / REJECT)");
+        }
+
+        Company saved = companyRepository.save(company);
+        return com.example.unipathapi.dto.response.CompanyResponse.builder()
+                .id(saved.getId())
+                .companyName(saved.getCompanyName())
+                .taxCode(saved.getTaxCode())
+                .companyScale(saved.getCompanyScale())
+                .description(saved.getDescription())
+                .website(saved.getWebsite())
+                .status(saved.getStatus())
+                .createdById(saved.getCreatedBy() != null ? saved.getCreatedBy().getId() : null)
+                .createdByEmail(saved.getCreatedBy() != null ? saved.getCreatedBy().getEmail() : null)
+                .approvedById(saved.getApprovedBy() != null ? saved.getApprovedBy().getId() : null)
+                .approvedByEmail(saved.getApprovedBy() != null ? saved.getApprovedBy().getEmail() : null)
+                .approvedAt(saved.getApprovedAt())
+                .createdAt(saved.getCreatedAt())
                 .build();
     }
 

@@ -3,6 +3,7 @@ package com.example.unipathapi.controller;
 import com.example.unipathapi.dto.request.CategoryRequest;
 import com.example.unipathapi.dto.request.ReportRequest;
 import com.example.unipathapi.dto.request.ReportResolveRequest;
+import com.example.unipathapi.dto.request.ReviewJoinRequestDTO;
 import com.example.unipathapi.dto.request.SkillRequest;
 import com.example.unipathapi.service.AdminService;
 import com.example.unipathapi.util.SecurityUtil;
@@ -167,6 +168,28 @@ public class AdminController {
     public ResponseEntity<?> getStats() {
         try {
             return ResponseEntity.ok(adminService.getStats());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // --- COMPANY PROPOSAL APPROVALS ---
+    @GetMapping("/api/admin/companies/pending")
+    public ResponseEntity<?> getPendingCompanies() {
+        try {
+            return ResponseEntity.ok(adminService.getPendingCompanies());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/api/admin/companies/{id}/review")
+    public ResponseEntity<?> reviewCompanyProposal(@PathVariable Integer id,
+                                                   @Valid @RequestBody ReviewJoinRequestDTO dto,
+                                                   HttpServletRequest httpRequest) {
+        try {
+            Integer adminUserId = securityUtil.getCurrentUserId(httpRequest);
+            return ResponseEntity.ok(adminService.reviewCompanyProposal(id, adminUserId, dto));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
