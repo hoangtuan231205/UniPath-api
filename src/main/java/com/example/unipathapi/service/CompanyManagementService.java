@@ -72,7 +72,8 @@ public class CompanyManagementService {
 
         Company savedCompany = companyRepository.save(company);
 
-        // Tự động chèn 1 bản ghi vào company_members với member_role = COMPANY_ADMIN cho người tạo
+        // Tự động chèn 1 bản ghi vào company_members với member_role = COMPANY_ADMIN
+        // cho người tạo
         CompanyMember creatorMember = new CompanyMember(savedCompany, user, "COMPANY_ADMIN");
         memberRepository.save(creatorMember);
 
@@ -106,7 +107,8 @@ public class CompanyManagementService {
 
     @Transactional
     public CompanyResponse updateCompany(Integer companyId, Integer currentUserId, CompanyRequest request) {
-        boolean isCompanyAdmin = memberRepository.existsByCompanyIdAndUserIdAndMemberRole(companyId, currentUserId, "COMPANY_ADMIN");
+        boolean isCompanyAdmin = memberRepository.existsByCompanyIdAndUserIdAndMemberRole(companyId, currentUserId,
+                "COMPANY_ADMIN");
         if (!isCompanyAdmin) {
             throw new RuntimeException("403: Chỉ có COMPANY_ADMIN của công ty mới có quyền chỉnh sửa hồ sơ");
         }
@@ -178,8 +180,10 @@ public class CompanyManagementService {
         }
     }
 
-    public List<CompanyJoinRequestResponse> getPendingJoinRequestsOfCompany(Integer companyId, Integer currentUserId, String currentUserRole) {
-        boolean isCompanyAdmin = memberRepository.existsByCompanyIdAndUserIdAndMemberRole(companyId, currentUserId, "COMPANY_ADMIN");
+    public List<CompanyJoinRequestResponse> getPendingJoinRequestsOfCompany(Integer companyId, Integer currentUserId,
+            String currentUserRole) {
+        boolean isCompanyAdmin = memberRepository.existsByCompanyIdAndUserIdAndMemberRole(companyId, currentUserId,
+                "COMPANY_ADMIN");
         boolean isSystemAdmin = "ADMIN".equalsIgnoreCase(currentUserRole);
 
         if (!isCompanyAdmin && !isSystemAdmin) {
@@ -191,7 +195,8 @@ public class CompanyManagementService {
     }
 
     @Transactional
-    public CompanyJoinRequestResponse approveJoinRequest(Integer requestId, Integer reviewerUserId, String reviewerRole) {
+    public CompanyJoinRequestResponse approveJoinRequest(Integer requestId, Integer reviewerUserId,
+            String reviewerRole) {
         CompanyJoinRequest joinReq = joinRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Yêu cầu gia nhập không tồn tại"));
 
@@ -203,14 +208,17 @@ public class CompanyManagementService {
 
         if (hasCompanyAdmin) {
             // Nếu đã có COMPANY_ADMIN -> chỉ COMPANY_ADMIN đó mới được duyệt
-            boolean isCompanyAdmin = memberRepository.existsByCompanyIdAndUserIdAndMemberRole(companyId, reviewerUserId, "COMPANY_ADMIN");
+            boolean isCompanyAdmin = memberRepository.existsByCompanyIdAndUserIdAndMemberRole(companyId, reviewerUserId,
+                    "COMPANY_ADMIN");
             if (!isCompanyAdmin) {
-                throw new RuntimeException("403: Chỉ có COMPANY_ADMIN của công ty mới được phép duyệt yêu cầu gia nhập");
+                throw new RuntimeException(
+                        "403: Chỉ có COMPANY_ADMIN của công ty mới được phép duyệt yêu cầu gia nhập");
             }
         } else {
             // Nếu chưa có COMPANY_ADMIN -> chỉ System Admin mới được duyệt
             if (!"ADMIN".equalsIgnoreCase(reviewerRole)) {
-                throw new RuntimeException("403: Công ty này chưa có COMPANY_ADMIN nào, chỉ có System Admin mới được duyệt yêu cầu");
+                throw new RuntimeException(
+                        "403: Công ty này chưa có COMPANY_ADMIN nào, chỉ có System Admin mới được duyệt yêu cầu");
             }
         }
 
@@ -227,7 +235,8 @@ public class CompanyManagementService {
     }
 
     @Transactional
-    public CompanyJoinRequestResponse rejectJoinRequest(Integer requestId, Integer reviewerUserId, String reviewerRole) {
+    public CompanyJoinRequestResponse rejectJoinRequest(Integer requestId, Integer reviewerUserId,
+            String reviewerRole) {
         CompanyJoinRequest joinReq = joinRequestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Yêu cầu gia nhập không tồn tại"));
 
@@ -238,13 +247,16 @@ public class CompanyManagementService {
         boolean hasCompanyAdmin = memberRepository.existsByCompanyIdAndMemberRole(companyId, "COMPANY_ADMIN");
 
         if (hasCompanyAdmin) {
-            boolean isCompanyAdmin = memberRepository.existsByCompanyIdAndUserIdAndMemberRole(companyId, reviewerUserId, "COMPANY_ADMIN");
+            boolean isCompanyAdmin = memberRepository.existsByCompanyIdAndUserIdAndMemberRole(companyId, reviewerUserId,
+                    "COMPANY_ADMIN");
             if (!isCompanyAdmin) {
-                throw new RuntimeException("403: Chỉ có COMPANY_ADMIN của công ty mới được phép từ chối yêu cầu gia nhập");
+                throw new RuntimeException(
+                        "403: Chỉ có COMPANY_ADMIN của công ty mới được phép từ chối yêu cầu gia nhập");
             }
         } else {
             if (!"ADMIN".equalsIgnoreCase(reviewerRole)) {
-                throw new RuntimeException("403: Công ty này chưa có COMPANY_ADMIN nào, chỉ có System Admin mới được từ chối yêu cầu");
+                throw new RuntimeException(
+                        "403: Công ty này chưa có COMPANY_ADMIN nào, chỉ có System Admin mới được từ chối yêu cầu");
             }
         }
 
@@ -318,6 +330,22 @@ public class CompanyManagementService {
         return buildShiftResponse(updated);
     }
 
+    public EmployeeResponse createEmployment(Integer employerUserId, com.example.unipathapi.dto.request.EmploymentRequest request) {
+        Company company = getFirstCompanyOfEmployer(employerUserId);
+        User candidate = userRepository.findById(request.getCandidateId())
+                .orElseThrow(() -> new RuntimeException("Ứng viên không tồn tại"));
+
+        Employment employment = new Employment();
+        employment.setCompany(company);
+        employment.setCandidate(candidate);
+        employment.setBaseSalaryPerHour(request.getBaseSalaryPerHour());
+        employment.setStartDate(request.getStartDate() != null ? request.getStartDate() : java.time.LocalDate.now());
+        employment.setStatus("ACTIVE");
+
+        Employment saved = employmentRepository.save(employment);
+        return buildEmployeeResponse(saved);
+    }
+
     public List<EmployeeResponse> getEmployees(Integer employerUserId) {
         Company company = getFirstCompanyOfEmployer(employerUserId);
         List<Employment> employments = employmentRepository.findByCompanyId(company.getId());
@@ -326,7 +354,8 @@ public class CompanyManagementService {
 
     public List<PayrollResponse> getPayroll(Integer employerUserId, Short month, Short year) {
         Company company = getFirstCompanyOfEmployer(employerUserId);
-        List<Payroll> payrolls = payrollRepository.findPayrollByCompanyAndOptionalMonthYear(company.getId(), month, year);
+        List<Payroll> payrolls = payrollRepository.findPayrollByCompanyAndOptionalMonthYear(company.getId(), month,
+                year);
         return payrolls.stream().map(this::buildPayrollResponse).collect(Collectors.toList());
     }
 

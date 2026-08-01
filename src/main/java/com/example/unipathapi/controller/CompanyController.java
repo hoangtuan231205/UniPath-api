@@ -114,6 +114,15 @@ public class CompanyController {
         }
     }
 
+    @GetMapping("/api/companies/{id}/members")
+    public ResponseEntity<?> getCompanyMembers(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(companyService.getCompanyMembers(id));
+        } catch (RuntimeException e) {
+            return handleException(e);
+        }
+    }
+
     private ResponseEntity<?> handleException(RuntimeException e) {
         String msg = e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống";
         if (msg.startsWith("403:")) {

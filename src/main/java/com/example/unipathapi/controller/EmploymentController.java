@@ -1,5 +1,6 @@
 package com.example.unipathapi.controller;
 
+import com.example.unipathapi.dto.request.EmploymentRequest;
 import com.example.unipathapi.dto.request.ShiftRequest;
 import com.example.unipathapi.service.CompanyManagementService;
 import com.example.unipathapi.util.SecurityUtil;
@@ -47,6 +48,16 @@ public class EmploymentController {
         try {
             Integer userId = securityUtil.getCurrentUserId(request);
             return ResponseEntity.ok(companyManagementService.updateShift(id, userId, shiftRequest));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/employees")
+    public ResponseEntity<?> createEmployment(@Valid @RequestBody EmploymentRequest employmentRequest, HttpServletRequest request) {
+        try {
+            Integer userId = securityUtil.getCurrentUserId(request);
+            return ResponseEntity.ok(companyManagementService.createEmployment(userId, employmentRequest));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
