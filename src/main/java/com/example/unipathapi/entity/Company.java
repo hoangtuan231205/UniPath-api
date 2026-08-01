@@ -22,7 +22,7 @@ public class Company {
     private String companyName;
 
     @Column(name = "company_scale", length = 50)
-    private String companyScale; // 'ENTERPRISE' hoặc 'SME'
+    private String companyScale = "SME"; // 'ENTERPRISE' hoặc 'SME'
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -33,8 +33,14 @@ public class Company {
     @Column(name = "tax_code", length = 20, unique = true)
     private String taxCode;
 
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    @Column(name = "business_license_url", length = 255)
+    private String businessLicenseUrl;
+
     @Column(name = "status", length = 20, nullable = false)
-    private String status = "APPROVED"; // 'PENDING', 'APPROVED', 'REJECTED'
+    private String status = "PENDING"; // 'PENDING', 'APPROVED', 'REJECTED'
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")

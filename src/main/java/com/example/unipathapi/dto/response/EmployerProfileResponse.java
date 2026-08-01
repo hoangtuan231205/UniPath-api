@@ -3,7 +3,6 @@ package com.example.unipathapi.dto.response;
 import lombok.Data;
 
 @Data
-
 public class EmployerProfileResponse {
     private Integer id;
     private String email;
@@ -11,6 +10,4 @@ public class EmployerProfileResponse {
     private String phone;
     private String position;
     private String bio;
-    private Boolean isVerified;
-
 }

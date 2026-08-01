@@ -9,10 +9,9 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Table(name = "employer_profiles") // Đã thêm chữ 's' cho khớp DB
+@Table(name = "employer_profiles")
 public class EmployerProfile {
 
-    // Tương tự, dùng user_id làm khóa chính
     @Id
     @Column(name = "user_id")
     private Integer id;
@@ -36,12 +35,6 @@ public class EmployerProfile {
 
     @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
-
-    @Column(name = "is_verified", nullable = false)
-    private Boolean isVerified = false;
-
-    @Column(name = "verified_at")
-    private LocalDateTime verifiedAt;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;

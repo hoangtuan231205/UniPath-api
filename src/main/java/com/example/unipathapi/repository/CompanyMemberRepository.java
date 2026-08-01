@@ -10,13 +10,15 @@ import java.util.Optional;
 @Repository
 public interface CompanyMemberRepository extends JpaRepository<CompanyMember, Integer> {
 
-    Optional<CompanyMember> findByUserId(Integer userId);
+    List<CompanyMember> findByUserId(Integer userId);
 
     List<CompanyMember> findByCompanyId(Integer companyId);
 
     Optional<CompanyMember> findByCompanyIdAndUserId(Integer companyId, Integer userId);
 
     boolean existsByCompanyIdAndUserId(Integer companyId, Integer userId);
+
+    boolean existsByCompanyIdAndUserIdAndMemberRole(Integer companyId, Integer userId, String memberRole);
 
     boolean existsByCompanyIdAndMemberRole(Integer companyId, String memberRole);
 }

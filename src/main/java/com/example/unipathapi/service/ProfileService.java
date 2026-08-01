@@ -79,7 +79,6 @@ public class ProfileService {
         res.setPhone(profile.getPhone());
         res.setPosition(profile.getPosition());
         res.setBio(profile.getBio());
-        res.setIsVerified(profile.getIsVerified() != null ? profile.getIsVerified() : false);
         return res;
     }
 

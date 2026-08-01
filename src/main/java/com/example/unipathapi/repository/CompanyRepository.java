@@ -9,6 +9,10 @@ import java.util.Optional;
 
 @Repository
 public interface CompanyRepository extends JpaRepository<Company, Integer> {
+
+    List<Company> findByCompanyNameContainingIgnoreCaseAndStatus(String keyword, String status);
+
     Optional<Company> findByTaxCode(String taxCode);
+
     List<Company> findByStatus(String status);
 }

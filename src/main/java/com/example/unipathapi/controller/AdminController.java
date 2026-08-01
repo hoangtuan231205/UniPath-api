@@ -172,26 +172,4 @@ public class AdminController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
-    // --- COMPANY PROPOSAL APPROVALS ---
-    @GetMapping("/api/admin/companies/pending")
-    public ResponseEntity<?> getPendingCompanies() {
-        try {
-            return ResponseEntity.ok(adminService.getPendingCompanies());
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    @PatchMapping("/api/admin/companies/{id}/review")
-    public ResponseEntity<?> reviewCompanyProposal(@PathVariable Integer id,
-                                                   @Valid @RequestBody ReviewJoinRequestDTO dto,
-                                                   HttpServletRequest httpRequest) {
-        try {
-            Integer adminUserId = securityUtil.getCurrentUserId(httpRequest);
-            return ResponseEntity.ok(adminService.reviewCompanyProposal(id, adminUserId, dto));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
 }

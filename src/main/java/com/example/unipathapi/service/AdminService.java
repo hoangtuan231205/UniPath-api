@@ -7,6 +7,7 @@ import com.example.unipathapi.dto.request.ReviewJoinRequestDTO;
 import com.example.unipathapi.dto.request.SkillRequest;
 import com.example.unipathapi.dto.response.AdminStatsResponse;
 import com.example.unipathapi.dto.response.AdminUserResponse;
+import com.example.unipathapi.dto.response.CompanyResponse;
 import com.example.unipathapi.dto.response.ReportResponse;
 import com.example.unipathapi.entity.*;
 import com.example.unipathapi.repository.*;
@@ -250,64 +251,62 @@ public class AdminService {
     @Autowired
     private CompanyMemberRepository memberRepository;
 
-    public List<com.example.unipathapi.dto.response.CompanyResponse> getPendingCompanies() {
-        List<Company> pendingCompanies = companyRepository.findByStatus("PENDING");
-        return pendingCompanies.stream()
-                .map(comp -> com.example.unipathapi.dto.response.CompanyResponse.builder()
-                        .id(comp.getId())
-                        .companyName(comp.getCompanyName())
-                        .taxCode(comp.getTaxCode())
-                        .companyScale(comp.getCompanyScale())
-                        .description(comp.getDescription())
-                        .website(comp.getWebsite())
-                        .status(comp.getStatus())
-                        .createdById(comp.getCreatedBy() != null ? comp.getCreatedBy().getId() : null)
-                        .createdByEmail(comp.getCreatedBy() != null ? comp.getCreatedBy().getEmail() : null)
-                        .createdAt(comp.getCreatedAt())
-                        .build())
-                .collect(Collectors.toList());
+    public List<CompanyResponse> getCompaniesByStatus(String status) {
+        String queryStatus = (status != null && !status.trim().isEmpty()) ? status.trim().toUpperCase() : "PENDING";
+        List<Company> companies = companyRepository.findByStatus(queryStatus);
+        return companies.stream().map(this::buildCompanyResponse).collect(Collectors.toList());
     }
 
     @Transactional
-    public com.example.unipathapi.dto.response.CompanyResponse reviewCompanyProposal(Integer companyId, Integer adminUserId, ReviewJoinRequestDTO dto) {
+    public CompanyResponse approveCompanyProposal(Integer companyId, Integer adminUserId) {
         Company company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new RuntimeException("Công ty không tồn tại"));
 
         User admin = userRepository.findById(adminUserId)
                 .orElseThrow(() -> new RuntimeException("Tài khoản admin không tồn tại"));
 
-        if ("APPROVE".equalsIgnoreCase(dto.getAction())) {
-            company.setStatus("APPROVED");
-            company.setApprovedBy(admin);
-            company.setApprovedAt(LocalDateTime.now());
+        company.setStatus("APPROVED");
+        company.setApprovedBy(admin);
+        company.setApprovedAt(LocalDateTime.now());
 
-            if (company.getCreatedBy() != null) {
-                if (!memberRepository.existsByCompanyIdAndUserId(company.getId(), company.getCreatedBy().getId())) {
-                    CompanyMember companyAdmin = new CompanyMember(company, company.getCreatedBy(), "COMPANY_ADMIN");
-                    memberRepository.save(companyAdmin);
-                }
+        if (company.getCreatedBy() != null) {
+            if (!memberRepository.existsByCompanyIdAndUserId(company.getId(), company.getCreatedBy().getId())) {
+                CompanyMember companyAdmin = new CompanyMember(company, company.getCreatedBy(), "COMPANY_ADMIN");
+                memberRepository.save(companyAdmin);
             }
-        } else if ("REJECT".equalsIgnoreCase(dto.getAction())) {
-            company.setStatus("REJECTED");
-        } else {
-            throw new RuntimeException("Hành động không hợp lệ (APPROVE / REJECT)");
         }
 
         Company saved = companyRepository.save(company);
-        return com.example.unipathapi.dto.response.CompanyResponse.builder()
-                .id(saved.getId())
-                .companyName(saved.getCompanyName())
-                .taxCode(saved.getTaxCode())
-                .companyScale(saved.getCompanyScale())
-                .description(saved.getDescription())
-                .website(saved.getWebsite())
-                .status(saved.getStatus())
-                .createdById(saved.getCreatedBy() != null ? saved.getCreatedBy().getId() : null)
-                .createdByEmail(saved.getCreatedBy() != null ? saved.getCreatedBy().getEmail() : null)
-                .approvedById(saved.getApprovedBy() != null ? saved.getApprovedBy().getId() : null)
-                .approvedByEmail(saved.getApprovedBy() != null ? saved.getApprovedBy().getEmail() : null)
-                .approvedAt(saved.getApprovedAt())
-                .createdAt(saved.getCreatedAt())
+        return buildCompanyResponse(saved);
+    }
+
+    @Transactional
+    public CompanyResponse rejectCompanyProposal(Integer companyId, Integer adminUserId) {
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new RuntimeException("Công ty không tồn tại"));
+
+        company.setStatus("REJECTED");
+        Company saved = companyRepository.save(company);
+        return buildCompanyResponse(saved);
+    }
+
+    private CompanyResponse buildCompanyResponse(Company comp) {
+        return CompanyResponse.builder()
+                .id(comp.getId())
+                .companyName(comp.getCompanyName())
+                .taxCode(comp.getTaxCode())
+                .phoneNumber(comp.getPhoneNumber())
+                .businessLicenseUrl(comp.getBusinessLicenseUrl())
+                .companyScale(comp.getCompanyScale())
+                .description(comp.getDescription())
+                .website(comp.getWebsite())
+                .status(comp.getStatus())
+                .createdById(comp.getCreatedBy() != null ? comp.getCreatedBy().getId() : null)
+                .createdByEmail(comp.getCreatedBy() != null ? comp.getCreatedBy().getEmail() : null)
+                .approvedById(comp.getApprovedBy() != null ? comp.getApprovedBy().getId() : null)
+                .approvedByEmail(comp.getApprovedBy() != null ? comp.getApprovedBy().getEmail() : null)
+                .approvedAt(comp.getApprovedAt())
+                .createdAt(comp.getCreatedAt())
                 .build();
     }
 

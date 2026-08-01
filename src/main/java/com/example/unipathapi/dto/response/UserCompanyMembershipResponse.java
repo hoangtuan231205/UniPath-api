@@ -9,20 +9,14 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
-public class CompanyResponse {
-    private Integer id;
+public class UserCompanyMembershipResponse {
+    private Integer companyId;
     private String companyName;
     private String taxCode;
-    private String phoneNumber;
-    private String businessLicenseUrl;
     private String companyScale;
     private String description;
     private String website;
     private String status;
-    private Integer createdById;
-    private String createdByEmail;
-    private Integer approvedById;
-    private String approvedByEmail;
-    private LocalDateTime approvedAt;
-    private LocalDateTime createdAt;
+    private String memberRole; // 'COMPANY_ADMIN', 'RECRUITER'
+    private LocalDateTime joinedAt;
 }
