@@ -1,0 +1,840 @@
+{
+  "info": {
+    "name": "UniPath API - Complete Collection",
+    "description": "Bộ sưu tập Postman Collection đầy đủ dùng để kiểm thử tất cả các API của dự án UniPath API (Spring Boot)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Auth & Profiles",
+      "item": [
+        {
+          "name": "Register Candidate",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"candidate1@example.com\",\n  \"password\": \"123456\",\n  \"role\": \"CANDIDATE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register Employer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"hr@company.com\",\n  \"password\": \"123456\",\n  \"role\": \"EMPLOYER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"candidate1@example.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Candidate Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/profiles/candidate/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profiles", "candidate", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Candidate Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Văn A\",\n  \"phoneNumber\": \"0987654321\",\n  \"experienceYears\": 2,\n  \"skills\": \"Java, Spring Boot, PostgreSQL\",\n  \"universityName\": \"Đại học Bách Khoa\",\n  \"major\": \"Công nghệ thông tin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profiles/candidate/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profiles", "candidate", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Jobs",
+      "item": [
+        {
+          "name": "Create New Job (Employer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Lập trình viên Java Spring Boot Junior\",\n  \"jobType\": \"FULL_TIME\",\n  \"salaryRange\": \"12 - 18 triệu\",\n  \"description\": \"Phát triển RESTful API Backend cho hệ thống UniPath\",\n  \"requirements\": \"{\\\"skills\\\": [\\\"Java\\\", \\\"Spring Boot\\\"]}\",\n  \"categoryId\": 1,\n  \"locationId\": 1,\n  \"skillIds\": [1, 2]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/jobs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs"]
+            }
+          }
+        },
+        {
+          "name": "Get Job Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Job (Employer)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Java Developer (Spring Boot / Microservices)\",\n  \"jobType\": \"FULL_TIME\",\n  \"salaryRange\": \"20 - 30 triệu\",\n  \"description\": \"Cập nhật nội dung mô tả công việc...\",\n  \"requirements\": \"{\\\"experience\\\": \\\"3+ years\\\"}\",\n  \"categoryId\": 1,\n  \"locationId\": 1,\n  \"skillIds\": [1, 2]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1"]
+            }
+          }
+        },
+        {
+          "name": "Close Job",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1/close",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1", "close"]
+            }
+          }
+        },
+        {
+          "name": "Delete Job",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Jobs Feed (Cursor Pagination)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/feed?keyword=Java",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "feed"],
+              "query": [
+                { "key": "cursor", "value": "", "disabled": true },
+                { "key": "keyword", "value": "Java" },
+                { "key": "categoryId", "value": "", "disabled": true },
+                { "key": "jobType", "value": "", "disabled": true }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Community Posts & Feed",
+      "item": [
+        {
+          "name": "Create Community Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Kinh nghiệm phỏng vấn Java Developer 2026\",\n  \"content\": \"Chia sẻ chi tiết các câu hỏi về Spring Boot Core, JPA Hibernate và PostgreSQL...\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts"]
+            }
+          }
+        },
+        {
+          "name": "Get Post Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/posts/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Post",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"[Cập nhật] Kinh nghiệm phỏng vấn Java Developer 2026\",\n  \"content\": \"Cập nhật thêm các câu hỏi về Docker & Kubernetes...\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/posts/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Post",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/posts/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Merged Feed (Jobs + Posts)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/feed",
+              "host": ["{{base_url}}"],
+              "path": ["api", "feed"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Interactions (Like, Comment, Share)",
+      "item": [
+        {
+          "name": "Like Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1/like",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1", "like"]
+            }
+          }
+        },
+        {
+          "name": "Unlike Job",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1/like",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1", "like"]
+            }
+          }
+        },
+        {
+          "name": "Like Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/posts/1/like",
+              "host": ["{{base_url}}"],
+              "path": ["api", "posts", "1", "like"]
+            }
+          }
+        },
+        {
+          "name": "Comment on Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Vị trí này làm việc theo thời gian linh hoạt không ạ?\",\n  \"parentCommentId\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1", "comments"]
+            }
+          }
+        },
+        {
+          "name": "Get Job Comments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1/comments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1", "comments"]
+            }
+          }
+        },
+        {
+          "name": "Share Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1/share",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1", "share"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Applications & CV",
+      "item": [
+        {
+          "name": "Check Applied Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1/check-applied",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1", "check-applied"]
+            }
+          }
+        },
+        {
+          "name": "Apply for Job (Multipart Upload)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\"jobId\": 1, \"coverLetter\": \"Tôi rất mong muốn được thử sức với vị trí này...\"}",
+                  "type": "text",
+                  "contentType": "application/json"
+                },
+                {
+                  "key": "cvFile",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/applications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications"]
+            }
+          }
+        },
+        {
+          "name": "Get Candidate Application History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/applications/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get Applicants for Job (Employer)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1/applications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1", "applications"]
+            }
+          }
+        },
+        {
+          "name": "Update Application Status (Employer)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACCEPTED\",\n  \"note\": \"Mời ứng viên tham gia vòng phỏng vấn 1\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/applications/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", "1", "status"]
+            }
+          }
+        },
+        {
+          "name": "Download CV File",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/applications/1/cv/download",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", "1", "cv", "download"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Saved Jobs",
+      "item": [
+        {
+          "name": "Save Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1/save",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1", "save"]
+            }
+          }
+        },
+        {
+          "name": "Unsave Job",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1/save",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1", "save"]
+            }
+          }
+        },
+        {
+          "name": "Get Saved Jobs List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/saved-jobs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "saved-jobs"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. CV Profiles (AI CV)",
+      "item": [
+        {
+          "name": "Get My CV Profiles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cv-profiles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cv-profiles"]
+            }
+          }
+        },
+        {
+          "name": "Create CV Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"CV Lập trình viên Backend 2026\",\n  \"contentJson\": \"{\\\"summary\\\": \\\"Kinh nghiệm 2 năm Java\\\"}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cv-profiles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cv-profiles"]
+            }
+          }
+        },
+        {
+          "name": "Set Primary CV",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cv-profiles/1/set-primary",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cv-profiles", "1", "set-primary"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08. Company & SME Personnel",
+      "item": [
+        {
+          "name": "Get My Company",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/companies/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update My Company",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyName\": \"Công ty TNHH Công nghệ UniPath\",\n  \"companyScale\": \"SME\",\n  \"description\": \"Chuyên về các giải pháp tuyển dụng công nghệ\",\n  \"website\": \"https://unipath.example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/companies/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "companies", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get Today Shifts (SME)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/employer/shifts/today",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employer", "shifts", "today"]
+            }
+          }
+        },
+        {
+          "name": "Get Employees (SME)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/employer/employees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employer", "employees"]
+            }
+          }
+        },
+        {
+          "name": "Get Payroll (SME)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/employer/payroll?month=7&year=2026",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employer", "payroll"],
+              "query": [
+                { "key": "month", "value": "7" },
+                { "key": "year", "value": "2026" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09. Candidate Search",
+      "item": [
+        {
+          "name": "Search Candidates",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/candidates/search?skill=Java&university=Bách+Khoa",
+              "host": ["{{base_url}}"],
+              "path": ["api", "candidates", "search"],
+              "query": [
+                { "key": "skill", "value": "Java" },
+                { "key": "major", "value": "", "disabled": true },
+                { "key": "university", "value": "Bách Khoa" },
+                { "key": "keyword", "value": "", "disabled": true }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Admin",
+      "item": [
+        {
+          "name": "Get Users List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users?type=CANDIDATE",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users"],
+              "query": [
+                { "key": "type", "value": "CANDIDATE" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ban User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/1/ban",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users", "1", "ban"]
+            }
+          }
+        },
+        {
+          "name": "Report Job (Candidate)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Tin tuyển dụng thu phí trái quy định\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/jobs/1/report",
+              "host": ["{{base_url}}"],
+              "path": ["api", "jobs", "1", "report"]
+            }
+          }
+        },
+        {
+          "name": "Resolve Report",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"BAN_ACCOUNT\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/reports/1/resolve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "reports", "1", "resolve"]
+            }
+          }
+        },
+        {
+          "name": "Get Admin Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Notifications",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications?unreadOnly=false",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"],
+              "query": [
+                { "key": "unreadOnly", "value": "false" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/1/read",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "1", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark All Notifications as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/read-all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "read-all"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
