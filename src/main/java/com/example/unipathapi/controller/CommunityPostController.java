@@ -31,9 +31,10 @@ public class CommunityPostController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getPostDetail(@PathVariable Integer id) {
+    public ResponseEntity<?> getPostDetail(@PathVariable Integer id, HttpServletRequest httpRequest) {
         try {
-            return ResponseEntity.ok(postService.getPostDetail(id));
+            Integer currentUserId = securityUtil.getOptionalCurrentUserId(httpRequest);
+            return ResponseEntity.ok(postService.getPostDetail(id, currentUserId));
         } catch (RuntimeException e) {
             return ResponseEntity.status(404).body(e.getMessage());
         }

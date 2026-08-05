@@ -10,8 +10,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -95,13 +97,21 @@ public class JobService {
             }
         }
 
-        return buildJobResponse(savedJob);
+        return buildJobResponse(savedJob, false);
     }
 
     public JobResponse getJobDetail(Integer id) {
+        return getJobDetail(id, null);
+    }
+
+    public JobResponse getJobDetail(Integer id, Integer currentUserId) {
         Job job = jobRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng"));
-        return buildJobResponse(job);
+        boolean isLiked = false;
+        if (currentUserId != null) {
+            isLiked = jobLikeRepository.existsByJobIdAndUserId(id, currentUserId);
+        }
+        return buildJobResponse(job, isLiked);
     }
 
     @Transactional
@@ -145,7 +155,7 @@ public class JobService {
         }
 
         Job updatedJob = jobRepository.save(job);
-        return buildJobResponse(updatedJob);
+        return buildJobResponse(updatedJob, false);
     }
 
     public JobResponse closeJob(Integer id, Integer userId) {
@@ -156,7 +166,7 @@ public class JobService {
 
         job.setIsActive(false);
         Job savedJob = jobRepository.save(job);
-        return buildJobResponse(savedJob);
+        return buildJobResponse(savedJob, false);
     }
 
     @Transactional
@@ -176,12 +186,34 @@ public class JobService {
     }
 
     public List<JobResponse> getFeedJobs(Integer cursor, String keyword, Integer categoryId, Integer locationId, String jobType) {
+        return getFeedJobs(cursor, keyword, categoryId, locationId, jobType, null);
+    }
+
+    public List<JobResponse> getFeedJobs(Integer cursor, String keyword, Integer categoryId, Integer locationId, String jobType, Integer currentUserId) {
         Pageable pageable = PageRequest.of(0, 20);
         List<Job> jobs = jobRepository.findFeedJobs(cursor, keyword, categoryId, locationId, jobType, pageable);
-        return jobs.stream().map(this::buildJobResponse).collect(Collectors.toList());
+        if (jobs.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Set<Integer> likedJobIds;
+        if (currentUserId != null) {
+            List<Integer> jobIds = jobs.stream().map(Job::getId).collect(Collectors.toList());
+            likedJobIds = jobLikeRepository.findLikedJobIdsByUserIdAndJobIds(currentUserId, jobIds);
+        } else {
+            likedJobIds = Collections.emptySet();
+        }
+
+        return jobs.stream()
+                .map(job -> buildJobResponse(job, likedJobIds.contains(job.getId())))
+                .collect(Collectors.toList());
     }
 
     public JobResponse buildJobResponse(Job job) {
+        return buildJobResponse(job, false);
+    }
+
+    public JobResponse buildJobResponse(Job job, Boolean isLiked) {
         List<JobSkill> jobSkills = jobSkillRepository.findByJobId(job.getId());
         List<String> skillNames = jobSkills.stream()
                 .map(js -> js.getSkill().getName())
@@ -206,11 +238,13 @@ public class JobService {
                 .companyId(job.getCompany() != null ? job.getCompany().getId() : null)
                 .companyName(job.getCompany() != null ? job.getCompany().getCompanyName() : null)
                 .companyScale(job.getCompany() != null ? job.getCompany().getCompanyScale() : null)
+                .companyLogoUrl(job.getCompany() != null ? job.getCompany().getLogoUrl() : null)
                 .skills(skillNames)
                 .likesCount(likesCount)
                 .commentsCount(commentsCount)
                 .sharesCount(sharesCount)
                 .applicationsCount(applicationsCount)
+                .isLiked(isLiked != null ? isLiked : false)
                 .isActive(job.getIsActive())
                 .postedAt(job.getPostedAt())
                 .expiredAt(job.getExpiredAt())

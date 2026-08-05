@@ -15,6 +15,8 @@ public class FeedItemResponse {
     private String title;
     private String content;
     private String authorOrCompany;
+    private String avatarUrl;
+    private Boolean isLiked;
     private LocalDateTime timestamp;
     private JobResponse jobDetails;
     private CommunityPostResponse postDetails;

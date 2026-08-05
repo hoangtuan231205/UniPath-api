@@ -31,9 +31,10 @@ public class JobController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getJobDetail(@PathVariable Integer id) {
+    public ResponseEntity<?> getJobDetail(@PathVariable Integer id, HttpServletRequest httpRequest) {
         try {
-            return ResponseEntity.ok(jobService.getJobDetail(id));
+            Integer currentUserId = securityUtil.getOptionalCurrentUserId(httpRequest);
+            return ResponseEntity.ok(jobService.getJobDetail(id, currentUserId));
         } catch (RuntimeException e) {
             return ResponseEntity.status(404).body(e.getMessage());
         }
@@ -77,9 +78,11 @@ public class JobController {
                                          @RequestParam(required = false) String keyword,
                                          @RequestParam(required = false) Integer categoryId,
                                          @RequestParam(required = false) Integer locationId,
-                                         @RequestParam(required = false) String jobType) {
+                                         @RequestParam(required = false) String jobType,
+                                         HttpServletRequest httpRequest) {
         try {
-            return ResponseEntity.ok(jobService.getFeedJobs(cursor, keyword, categoryId, locationId, jobType));
+            Integer currentUserId = securityUtil.getOptionalCurrentUserId(httpRequest);
+            return ResponseEntity.ok(jobService.getFeedJobs(cursor, keyword, categoryId, locationId, jobType, currentUserId));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

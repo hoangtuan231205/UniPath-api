@@ -27,6 +27,7 @@ public class JobResponse {
     private Integer companyId;
     private String companyName;
     private String companyScale;
+    private String companyLogoUrl;
 
     private List<String> skills;
 
@@ -34,6 +35,7 @@ public class JobResponse {
     private long commentsCount;
     private long sharesCount;
     private long applicationsCount;
+    private Boolean isLiked;
 
     private Boolean isActive;
     private LocalDateTime postedAt;
