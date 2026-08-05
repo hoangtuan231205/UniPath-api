@@ -41,7 +41,33 @@ public class ProfileService {
         res.setUniversityName(profile.getUniversityName());
         res.setMajor(profile.getMajor());
         res.setSkills(profile.getSkills());
+        res.setAvatarUrl(profile.getAvatarUrl());
+        res.setCompletionPercentage(calculateCandidateCompletionPercentage(profile));
         return res;
+    }
+
+    public Object getProfileOfCurrentUser(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin người dùng"));
+        if ("CANDIDATE".equalsIgnoreCase(user.getRole())) {
+            return getCandidateProfile(userId);
+        } else if ("EMPLOYER".equalsIgnoreCase(user.getRole())) {
+            return getEmployerProfile(userId);
+        } else {
+            throw new RuntimeException("Vai trò không hỗ trợ lấy thông tin hồ sơ cá nhân");
+        }
+    }
+
+    private Integer calculateCandidateCompletionPercentage(CandidateProfile profile) {
+        int percentage = 0;
+        if (profile.getFullName() != null && !profile.getFullName().isBlank()) percentage += 20;
+        if (profile.getPhoneNumber() != null && !profile.getPhoneNumber().isBlank()) percentage += 15;
+        if (profile.getExperienceYears() != null) percentage += 15;
+        if (profile.getUniversityName() != null && !profile.getUniversityName().isBlank()) percentage += 15;
+        if (profile.getMajor() != null && !profile.getMajor().isBlank()) percentage += 15;
+        if (profile.getSkills() != null && !profile.getSkills().isBlank()) percentage += 10;
+        if (profile.getAvatarUrl() != null && !profile.getAvatarUrl().isBlank()) percentage += 10;
+        return percentage;
     }
 
     @Transactional

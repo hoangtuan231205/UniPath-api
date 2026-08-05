@@ -3,6 +3,8 @@ package com.example.unipathapi.controller;
 import com.example.unipathapi.dto.request.CandidateProfileRequest;
 import com.example.unipathapi.dto.request.EmployerProfileRequest;
 import com.example.unipathapi.service.ProfileService;
+import com.example.unipathapi.util.SecurityUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,20 @@ public class ProfileController {
 
     @Autowired
     private ProfileService profileService;
+
+    @Autowired
+    private SecurityUtil securityUtil;
+
+    // --- API LẤY PROFILE USER HIỆN TẠI ---
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyProfile(HttpServletRequest request) {
+        try {
+            Integer userId = securityUtil.getCurrentUserId(request);
+            return ResponseEntity.ok(profileService.getProfileOfCurrentUser(userId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
     // --- API CHO ỨNG VIÊN (CANDIDATE) ---
 

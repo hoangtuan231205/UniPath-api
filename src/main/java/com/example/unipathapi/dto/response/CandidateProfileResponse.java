@@ -13,4 +13,6 @@ public class CandidateProfileResponse {
     private String universityName;
     private String major;
     private String skills;
+    private String avatarUrl;
+    private Integer completionPercentage;
 }
