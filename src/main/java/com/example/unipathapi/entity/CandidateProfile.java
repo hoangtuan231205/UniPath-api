@@ -39,4 +39,7 @@ public class CandidateProfile {
 
     @Column(name = "skills", columnDefinition = "TEXT")
     private String skills;
+
+    @Column(name = "avatar_url", length = 255)
+    private String avatarUrl;
 }

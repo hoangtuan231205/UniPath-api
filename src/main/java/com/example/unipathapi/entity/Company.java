@@ -39,6 +39,9 @@ public class Company {
     @Column(name = "business_license_url", length = 255)
     private String businessLicenseUrl;
 
+    @Column(name = "logo_url", length = 255)
+    private String logoUrl;
+
     @Column(name = "status", length = 20, nullable = false)
     private String status = "PENDING"; // 'PENDING', 'APPROVED', 'REJECTED'
 

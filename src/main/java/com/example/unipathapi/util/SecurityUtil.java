@@ -35,6 +35,15 @@ public class SecurityUtil {
         }
     }
 
+    public Integer getOptionalCurrentUserId(HttpServletRequest request) {
+        if (request == null) return null;
+        try {
+            return getCurrentUserId(request);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public String getCurrentUserRole(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
