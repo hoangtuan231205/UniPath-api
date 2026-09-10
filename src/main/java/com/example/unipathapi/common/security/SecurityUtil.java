@@ -1,7 +1,7 @@
 package com.example.unipathapi.common.security;
 
-import com.example.unipathapi.entity.User;
-import com.example.unipathapi.repository.UserRepository;
+import com.example.unipathapi.user.entity.User;
+import com.example.unipathapi.user.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

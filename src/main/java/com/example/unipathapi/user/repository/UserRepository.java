@@ -1,6 +1,6 @@
-package com.example.unipathapi.repository;
+package com.example.unipathapi.user.repository;
 
-import com.example.unipathapi.entity.User;
+import com.example.unipathapi.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

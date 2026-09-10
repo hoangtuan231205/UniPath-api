@@ -2,9 +2,9 @@ package com.example.unipathapi.service;
 
 import com.example.unipathapi.dto.response.AdminAuditLogResponse;
 import com.example.unipathapi.entity.AdminAuditLog;
-import com.example.unipathapi.entity.User;
+import com.example.unipathapi.user.entity.User;
 import com.example.unipathapi.repository.AdminAuditLogRepository;
-import com.example.unipathapi.repository.UserRepository;
+import com.example.unipathapi.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

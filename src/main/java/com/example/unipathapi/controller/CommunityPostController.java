@@ -1,4 +1,5 @@
 package com.example.unipathapi.controller;
+import com.example.unipathapi.user.entity.User;
 
 import com.example.unipathapi.dto.request.CommunityPostRequest;
 import com.example.unipathapi.service.CommunityPostService;

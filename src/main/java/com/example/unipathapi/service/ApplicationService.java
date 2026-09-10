@@ -1,4 +1,6 @@
 package com.example.unipathapi.service;
+import com.example.unipathapi.user.entity.User;
+import com.example.unipathapi.user.repository.UserRepository;
 
 import com.example.unipathapi.dto.request.ApplicationRequest;
 import com.example.unipathapi.dto.request.UpdateApplicationStatusRequest;

@@ -7,9 +7,9 @@ import com.example.unipathapi.service.CompanyManagementService;
 
 import com.example.unipathapi.auth.dto.request.AuthRequest;
 import com.example.unipathapi.auth.dto.response.AuthResponse;
-import com.example.unipathapi.entity.User;
+import com.example.unipathapi.user.entity.User;
 import com.example.unipathapi.entity.Company;
-import com.example.unipathapi.repository.UserRepository;
+import com.example.unipathapi.user.repository.UserRepository;
 import com.example.unipathapi.common.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

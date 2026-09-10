@@ -1,4 +1,5 @@
 package com.example.unipathapi.entity;
+import com.example.unipathapi.user.entity.User;
 
 
 import jakarta.persistence.*;

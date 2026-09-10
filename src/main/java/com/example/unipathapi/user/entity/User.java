@@ -1,4 +1,4 @@
-package com.example.unipathapi.entity;
+package com.example.unipathapi.user.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
