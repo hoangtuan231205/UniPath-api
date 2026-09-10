@@ -1,4 +1,4 @@
-package com.example.unipathapi.dto.request;
+package com.example.unipathapi.auth.dto.request;
 
 public class AuthRequest {
     private String email;

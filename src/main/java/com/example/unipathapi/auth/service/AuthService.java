@@ -1,7 +1,12 @@
-package com.example.unipathapi.service;
+package com.example.unipathapi.auth.service;
 
-import com.example.unipathapi.dto.request.AuthRequest;
-import com.example.unipathapi.dto.response.AuthResponse;
+import com.example.unipathapi.auth.dto.request.CandidateRegisterRequest;
+import com.example.unipathapi.auth.dto.request.EmployerRegisterRequest;
+import com.example.unipathapi.auth.dto.request.ChangePasswordRequest;
+import com.example.unipathapi.service.CompanyManagementService;
+
+import com.example.unipathapi.auth.dto.request.AuthRequest;
+import com.example.unipathapi.auth.dto.response.AuthResponse;
 import com.example.unipathapi.entity.User;
 import com.example.unipathapi.entity.Company;
 import com.example.unipathapi.repository.UserRepository;
@@ -29,7 +34,7 @@ public class AuthService {
     private CompanyManagementService companyService;
 
     @Transactional
-    public String registerCandidate(com.example.unipathapi.dto.request.CandidateRegisterRequest request) {
+    public String registerCandidate(CandidateRegisterRequest request) {
         String email = request.getEmail().trim().toLowerCase();
         if (userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Email đã tồn tại trong hệ thống");
@@ -56,7 +61,7 @@ public class AuthService {
     }
 
     @Transactional
-    public String registerEmployer(com.example.unipathapi.dto.request.EmployerRegisterRequest request) {
+    public String registerEmployer(EmployerRegisterRequest request) {
         String email = request.getEmail().trim().toLowerCase();
         if (userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Email đã tồn tại trong hệ thống");
@@ -169,7 +174,7 @@ public class AuthService {
     }
 
     @Transactional
-    public String changePassword(Integer userId, com.example.unipathapi.dto.request.ChangePasswordRequest request) {
+    public String changePassword(Integer userId, ChangePasswordRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 

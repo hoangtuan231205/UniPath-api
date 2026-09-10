@@ -1,4 +1,4 @@
-package com.example.unipathapi.dto.response;
+package com.example.unipathapi.auth.dto.response;
 
 public class AuthResponse {
     private String token;

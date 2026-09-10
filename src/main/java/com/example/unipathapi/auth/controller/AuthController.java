@@ -1,7 +1,13 @@
-package com.example.unipathapi.controller;
+package com.example.unipathapi.auth.controller;
 
-import com.example.unipathapi.dto.request.AuthRequest;
-import com.example.unipathapi.service.AuthService;
+import com.example.unipathapi.auth.dto.request.AuthRequest;
+import com.example.unipathapi.auth.dto.request.CandidateRegisterRequest;
+import com.example.unipathapi.auth.dto.request.ChangePasswordRequest;
+import com.example.unipathapi.auth.dto.request.EmployerRegisterRequest;
+import com.example.unipathapi.auth.service.AuthService;
+import com.example.unipathapi.common.security.SecurityUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +21,7 @@ public class AuthController {
     private AuthService authService;
 
         @PostMapping("/register/candidate")
-    public ResponseEntity<?> registerCandidate(@jakarta.validation.Valid @RequestBody com.example.unipathapi.dto.request.CandidateRegisterRequest request) {
+    public ResponseEntity<?> registerCandidate(@Valid @RequestBody CandidateRegisterRequest request) {
         try {
             return ResponseEntity.ok(authService.registerCandidate(request));
         } catch (RuntimeException e) {
@@ -24,7 +30,7 @@ public class AuthController {
     }
 
     @PostMapping("/register/employer")
-    public ResponseEntity<?> registerEmployer(@jakarta.validation.Valid @RequestBody com.example.unipathapi.dto.request.EmployerRegisterRequest request) {
+    public ResponseEntity<?> registerEmployer(@Valid @RequestBody EmployerRegisterRequest request) {
         try {
             return ResponseEntity.ok(authService.registerEmployer(request));
         } catch (RuntimeException e) {
@@ -55,11 +61,11 @@ public class AuthController {
     }
 
     @Autowired
-    private com.example.unipathapi.common.security.SecurityUtil securityUtil;
+    private SecurityUtil securityUtil;
 
     @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(@jakarta.validation.Valid @RequestBody com.example.unipathapi.dto.request.ChangePasswordRequest request,
-                                            jakarta.servlet.http.HttpServletRequest httpRequest) {
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request,
+                                            HttpServletRequest httpRequest) {
         try {
             Integer userId = securityUtil.getCurrentUserId(httpRequest);
             return ResponseEntity.ok(authService.changePassword(userId, request));
