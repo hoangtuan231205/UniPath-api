@@ -1,4 +1,9 @@
 package com.example.unipathapi.dto.response;
+import com.example.unipathapi.job.entity.*;
+import com.example.unipathapi.job.repository.*;
+import com.example.unipathapi.job.dto.request.*;
+import com.example.unipathapi.job.dto.response.*;
+import com.example.unipathapi.job.service.*;
 
 import lombok.Builder;
 import lombok.Getter;

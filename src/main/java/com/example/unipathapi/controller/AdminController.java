@@ -1,4 +1,9 @@
 package com.example.unipathapi.controller;
+import com.example.unipathapi.job.entity.*;
+import com.example.unipathapi.job.repository.*;
+import com.example.unipathapi.job.dto.request.*;
+import com.example.unipathapi.job.dto.response.*;
+import com.example.unipathapi.job.service.*;
 import com.example.unipathapi.company.entity.*;
 import com.example.unipathapi.company.repository.*;
 import com.example.unipathapi.company.dto.request.*;
@@ -6,10 +11,10 @@ import com.example.unipathapi.company.dto.response.*;
 import com.example.unipathapi.company.service.*;
 
 import com.example.unipathapi.dto.request.AdminCreateUserRequest;
-import com.example.unipathapi.dto.request.CategoryRequest;
+import com.example.unipathapi.job.dto.request.CategoryRequest;
 import com.example.unipathapi.dto.request.ReportRequest;
 import com.example.unipathapi.dto.request.ReportResolveRequest;
-import com.example.unipathapi.dto.request.SkillRequest;
+import com.example.unipathapi.job.dto.request.SkillRequest;
 import com.example.unipathapi.dto.request.UpdateMemberRoleRequest;
 import com.example.unipathapi.service.AdminAuditLogService;
 import com.example.unipathapi.service.AdminService;

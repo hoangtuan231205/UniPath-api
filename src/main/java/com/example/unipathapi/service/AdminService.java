@@ -1,4 +1,9 @@
 package com.example.unipathapi.service;
+import com.example.unipathapi.job.entity.*;
+import com.example.unipathapi.job.repository.*;
+import com.example.unipathapi.job.dto.request.*;
+import com.example.unipathapi.job.dto.response.*;
+import com.example.unipathapi.job.service.*;
 import com.example.unipathapi.company.entity.*;
 import com.example.unipathapi.company.repository.*;
 import com.example.unipathapi.company.dto.request.*;
@@ -13,10 +18,10 @@ import com.example.unipathapi.user.repository.UserRepository;
 
 import com.example.unipathapi.dto.request.AdminCreateUserRequest;
 import com.example.unipathapi.company.dto.request.CompanyRequest;
-import com.example.unipathapi.dto.request.CategoryRequest;
+import com.example.unipathapi.job.dto.request.CategoryRequest;
 import com.example.unipathapi.dto.request.ReportRequest;
 import com.example.unipathapi.dto.request.ReportResolveRequest;
-import com.example.unipathapi.dto.request.SkillRequest;
+import com.example.unipathapi.job.dto.request.SkillRequest;
 import com.example.unipathapi.dto.response.*;
 import com.example.unipathapi.entity.*;
 import com.example.unipathapi.repository.*;
