@@ -25,8 +25,6 @@ import com.example.unipathapi.application.dto.request.ApplicationRequest;
 import com.example.unipathapi.application.dto.request.UpdateApplicationStatusRequest;
 import com.example.unipathapi.application.dto.response.ApplicationResponse;
 import com.example.unipathapi.application.dto.response.CheckAppliedResponse;
-import com.example.unipathapi.entity.*;
-import com.example.unipathapi.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;

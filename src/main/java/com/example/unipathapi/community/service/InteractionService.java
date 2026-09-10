@@ -18,8 +18,6 @@ import com.example.unipathapi.user.repository.UserRepository;
 
 import com.example.unipathapi.community.dto.request.CommentRequest;
 import com.example.unipathapi.community.dto.response.CommentResponse;
-import com.example.unipathapi.entity.*;
-import com.example.unipathapi.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

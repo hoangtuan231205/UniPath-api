@@ -16,8 +16,6 @@ import com.example.unipathapi.user.repository.UserRepository;
 
 import com.example.unipathapi.job.dto.request.JobRequest;
 import com.example.unipathapi.job.dto.response.JobResponse;
-import com.example.unipathapi.entity.*;
-import com.example.unipathapi.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

@@ -20,8 +20,6 @@ import com.example.unipathapi.community.dto.request.CommunityPostRequest;
 import com.example.unipathapi.community.dto.response.CommunityPostResponse;
 import com.example.unipathapi.community.dto.response.FeedItemResponse;
 import com.example.unipathapi.job.dto.response.JobResponse;
-import com.example.unipathapi.entity.*;
-import com.example.unipathapi.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

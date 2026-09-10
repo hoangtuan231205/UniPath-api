@@ -1,4 +1,9 @@
-package com.example.unipathapi.controller;
+package com.example.unipathapi.admin.controller;
+import com.example.unipathapi.admin.entity.*;
+import com.example.unipathapi.admin.repository.*;
+import com.example.unipathapi.admin.dto.request.*;
+import com.example.unipathapi.admin.dto.response.*;
+import com.example.unipathapi.admin.service.*;
 import com.example.unipathapi.company.entity.*;
 import com.example.unipathapi.company.repository.*;
 import com.example.unipathapi.company.dto.request.*;
@@ -7,7 +12,7 @@ import com.example.unipathapi.company.service.*;
 
 import com.example.unipathapi.company.dto.request.CompanyRequest;
 import jakarta.validation.Valid;
-import com.example.unipathapi.service.AdminService;
+import com.example.unipathapi.admin.service.AdminService;
 import com.example.unipathapi.common.security.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,6 +1,7 @@
-package com.example.unipathapi.repository;
+package com.example.unipathapi.admin.repository;
+import com.example.unipathapi.admin.entity.*;
 
-import com.example.unipathapi.entity.Report;
+import com.example.unipathapi.admin.entity.Report;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
