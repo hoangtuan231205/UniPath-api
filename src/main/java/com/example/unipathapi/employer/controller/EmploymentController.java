@@ -1,8 +1,13 @@
 package com.example.unipathapi.employer.controller;
+import com.example.unipathapi.company.entity.*;
+import com.example.unipathapi.company.repository.*;
+import com.example.unipathapi.company.dto.request.*;
+import com.example.unipathapi.company.dto.response.*;
+import com.example.unipathapi.company.service.*;
 
-import com.example.unipathapi.dto.request.EmploymentRequest;
-import com.example.unipathapi.dto.request.ShiftRequest;
-import com.example.unipathapi.service.CompanyManagementService;
+import com.example.unipathapi.company.dto.request.EmploymentRequest;
+import com.example.unipathapi.company.dto.request.ShiftRequest;
+import com.example.unipathapi.company.service.CompanyManagementService;
 import com.example.unipathapi.common.security.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

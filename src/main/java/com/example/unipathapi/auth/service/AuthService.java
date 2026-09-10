@@ -1,14 +1,19 @@
 package com.example.unipathapi.auth.service;
+import com.example.unipathapi.company.entity.*;
+import com.example.unipathapi.company.repository.*;
+import com.example.unipathapi.company.dto.request.*;
+import com.example.unipathapi.company.dto.response.*;
+import com.example.unipathapi.company.service.*;
 
 import com.example.unipathapi.auth.dto.request.CandidateRegisterRequest;
 import com.example.unipathapi.auth.dto.request.EmployerRegisterRequest;
 import com.example.unipathapi.auth.dto.request.ChangePasswordRequest;
-import com.example.unipathapi.service.CompanyManagementService;
+import com.example.unipathapi.company.service.CompanyManagementService;
 
 import com.example.unipathapi.auth.dto.request.AuthRequest;
 import com.example.unipathapi.auth.dto.response.AuthResponse;
 import com.example.unipathapi.user.entity.User;
-import com.example.unipathapi.entity.Company;
+import com.example.unipathapi.company.entity.Company;
 import com.example.unipathapi.user.repository.UserRepository;
 import com.example.unipathapi.common.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +30,10 @@ public class AuthService {
     private com.example.unipathapi.employer.repository.EmployerProfileRepository employerProfileRepository;
 
     @Autowired
-    private com.example.unipathapi.repository.CompanyRepository companyRepository;
+    private com.example.unipathapi.company.repository.CompanyRepository companyRepository;
 
     @Autowired
-    private com.example.unipathapi.repository.CompanyJoinRequestRepository joinRequestRepository;
+    private com.example.unipathapi.company.repository.CompanyJoinRequestRepository joinRequestRepository;
 
     @Autowired
     private CompanyManagementService companyService;
@@ -105,7 +110,7 @@ public class AuthService {
             }
 
             // Create CompanyJoinRequest with status PENDING
-            com.example.unipathapi.entity.CompanyJoinRequest joinReq = new com.example.unipathapi.entity.CompanyJoinRequest();
+            com.example.unipathapi.company.entity.CompanyJoinRequest joinReq = new com.example.unipathapi.company.entity.CompanyJoinRequest();
             joinReq.setUser(savedUser);
             joinReq.setCompany(comp);
             joinReq.setStatus("PENDING");
@@ -113,7 +118,7 @@ public class AuthService {
             joinRequestRepository.save(joinReq);
         } else {
             // Propose new Company
-            com.example.unipathapi.dto.request.CompanyProposeRequest propReq = new com.example.unipathapi.dto.request.CompanyProposeRequest();
+            com.example.unipathapi.company.dto.request.CompanyProposeRequest propReq = new com.example.unipathapi.company.dto.request.CompanyProposeRequest();
             propReq.setCompanyName(request.getNewCompanyName());
             propReq.setContactEmail(request.getNewCompanyContactEmail());
             propReq.setTaxCode(request.getNewCompanyTaxCode());
@@ -123,7 +128,7 @@ public class AuthService {
             propReq.setDescription(request.getNewCompanyDescription());
             propReq.setConfirmed(request.getConfirmed());
 
-            com.example.unipathapi.dto.response.CompanyProposeResponse propRes = companyService.proposeCompany(savedUser.getId(), propReq);
+            com.example.unipathapi.company.dto.response.CompanyProposeResponse propRes = companyService.proposeCompany(savedUser.getId(), propReq);
             if (Boolean.TRUE.equals(propRes.getDuplicate())) {
                 throw new RuntimeException("Công ty \"" + propRes.getCompanyName() + "\" đã tồn tại trong hệ thống. Vui lòng chọn công ty này từ danh sách.");
             }

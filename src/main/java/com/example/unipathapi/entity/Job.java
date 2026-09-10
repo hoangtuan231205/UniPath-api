@@ -1,4 +1,9 @@
 package com.example.unipathapi.entity;
+import com.example.unipathapi.company.entity.*;
+import com.example.unipathapi.company.repository.*;
+import com.example.unipathapi.company.dto.request.*;
+import com.example.unipathapi.company.dto.response.*;
+import com.example.unipathapi.company.service.*;
 import com.example.unipathapi.user.entity.User;
 
 import jakarta.persistence.*;

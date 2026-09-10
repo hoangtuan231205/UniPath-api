@@ -1,7 +1,12 @@
 package com.example.unipathapi.user.controller;
+import com.example.unipathapi.company.entity.*;
+import com.example.unipathapi.company.repository.*;
+import com.example.unipathapi.company.dto.request.*;
+import com.example.unipathapi.company.dto.response.*;
+import com.example.unipathapi.company.service.*;
 import com.example.unipathapi.user.entity.User;
 
-import com.example.unipathapi.service.CompanyManagementService;
+import com.example.unipathapi.company.service.CompanyManagementService;
 import com.example.unipathapi.common.security.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
