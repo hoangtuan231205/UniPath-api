@@ -1,4 +1,6 @@
 package com.example.unipathapi.application.service;
+import com.example.unipathapi.notification.entity.Notification;
+import com.example.unipathapi.notification.repository.NotificationRepository;
 import com.example.unipathapi.application.entity.*;
 import com.example.unipathapi.application.repository.*;
 import com.example.unipathapi.application.dto.request.*;

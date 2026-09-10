@@ -1,4 +1,4 @@
-package com.example.unipathapi.dto.response;
+package com.example.unipathapi.notification.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;

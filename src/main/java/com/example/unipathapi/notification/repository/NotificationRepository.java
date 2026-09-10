@@ -1,7 +1,8 @@
-package com.example.unipathapi.repository;
+package com.example.unipathapi.notification.repository;
+import com.example.unipathapi.notification.entity.*;
 import com.example.unipathapi.user.entity.User;
 
-import com.example.unipathapi.entity.Notification;
+import com.example.unipathapi.notification.entity.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

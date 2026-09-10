@@ -1,6 +1,10 @@
-package com.example.unipathapi.controller;
+package com.example.unipathapi.notification.controller;
+import com.example.unipathapi.notification.entity.*;
+import com.example.unipathapi.notification.repository.*;
+import com.example.unipathapi.notification.dto.response.*;
+import com.example.unipathapi.notification.service.*;
 
-import com.example.unipathapi.service.NotificationService;
+import com.example.unipathapi.notification.service.NotificationService;
 import com.example.unipathapi.common.security.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;

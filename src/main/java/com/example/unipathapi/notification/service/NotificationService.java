@@ -1,8 +1,12 @@
-package com.example.unipathapi.service;
+package com.example.unipathapi.notification.service;
+import com.example.unipathapi.notification.entity.*;
+import com.example.unipathapi.notification.repository.*;
+import com.example.unipathapi.notification.dto.response.*;
+import com.example.unipathapi.notification.service.*;
 
-import com.example.unipathapi.dto.response.NotificationResponse;
-import com.example.unipathapi.entity.Notification;
-import com.example.unipathapi.repository.NotificationRepository;
+import com.example.unipathapi.notification.dto.response.NotificationResponse;
+import com.example.unipathapi.notification.entity.Notification;
+import com.example.unipathapi.notification.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

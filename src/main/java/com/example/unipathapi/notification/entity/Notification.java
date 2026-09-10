@@ -1,4 +1,4 @@
-package com.example.unipathapi.entity;
+package com.example.unipathapi.notification.entity;
 import com.example.unipathapi.user.entity.User;
 
 import jakarta.persistence.*;
