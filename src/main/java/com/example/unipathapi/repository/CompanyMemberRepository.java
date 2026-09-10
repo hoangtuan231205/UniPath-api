@@ -4,6 +4,7 @@ import com.example.unipathapi.entity.CompanyMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,5 +21,9 @@ public interface CompanyMemberRepository extends JpaRepository<CompanyMember, In
 
     boolean existsByCompanyIdAndUserIdAndMemberRole(Integer companyId, Integer userId, String memberRole);
 
+    boolean existsByCompanyIdAndUserIdAndMemberRoleIn(Integer companyId, Integer userId, Collection<String> memberRoles);
+
     boolean existsByCompanyIdAndMemberRole(Integer companyId, String memberRole);
+
+    long countByCompanyIdAndMemberRole(Integer companyId, String memberRole);
 }

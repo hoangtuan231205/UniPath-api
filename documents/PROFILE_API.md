@@ -11,9 +11,22 @@ Tài liệu chi tiết các API quản lý thông tin hồ sơ cho cả **Ứng 
 
 ---
 
-## 👨‍🎓 1. API Dành Cho Ứng Viên (Candidate)
+## 👨‍🎓 1. API Lấy Hồ Sơ Đăng Nhập Hiện Tại (`GET /api/profiles/me`)
 
-### 1.1 Lấy thông tin hồ sơ Ứng viên (`GET /api/profiles/candidate/{userId}`)
+### 1.0 Lấy thông tin hồ sơ của chính mình (`GET /api/profiles/me`)
+- **HTTP Method:** `GET`
+- **URL Path:** `/api/profiles/me`
+- **Mô tả:** Tự động lấy thông tin hồ sơ cá nhân của người dùng đang đăng nhập dựa trên Header JWT Token (`Authorization: Bearer <token>`). Tự động phân loại Hồ sơ Ứng viên hoặc Hồ sơ Nhà tuyển dụng.
+- **Xác thực:** **Bắt buộc** Header `Authorization: Bearer <token>`
+
+#### Response Structure (Candidate Profile / Employer Profile)
+Tự động trả về `CandidateProfileResponse` (kèm `% completion` và `avatarUrl`) nếu người dùng có role `CANDIDATE`, hoặc `EmployerProfileResponse` nếu có role `EMPLOYER`.
+
+---
+
+## 👨‍🎓 2. API Dành Cho Ứng Viên (Candidate)
+
+### 2.1 Lấy thông tin hồ sơ Ứng viên (`GET /api/profiles/candidate/{userId}`)
 - **HTTP Method:** `GET`
 - **URL Path:** `/api/profiles/candidate/{userId}`
 - **Mô tả:** Lấy thông tin chi tiết hồ sơ ứng viên theo `userId`.
@@ -34,6 +47,8 @@ Tài liệu chi tiết các API quản lý thông tin hồ sơ cho cả **Ứng 
 | `universityName` | `String` | Tên trường đại học đã/đang theo học |
 | `major` | `String` | Chuyên ngành học |
 | `skills` | `String` | Danh sách kỹ năng chuyên môn |
+| `avatarUrl` | `String` | Đường dẫn ảnh đại diện ứng viên |
+| `completionPercentage` | `Integer` | Tỷ lệ % hoàn thiện hồ sơ |
 
 #### Response Status
 - **200 OK:** Lấy hồ sơ thành công.
@@ -49,7 +64,9 @@ Tài liệu chi tiết các API quản lý thông tin hồ sơ cho cả **Ứng 
   "experienceYears": 2,
   "universityName": "Đại học Bách Khoa",
   "major": "Công nghệ thông tin",
-  "skills": "Java, Spring Boot, PostgreSQL, React"
+  "skills": "Java, Spring Boot, PostgreSQL, React",
+  "avatarUrl": "https://example.com/avatar.jpg",
+  "completionPercentage": 85
 }
 ```
 

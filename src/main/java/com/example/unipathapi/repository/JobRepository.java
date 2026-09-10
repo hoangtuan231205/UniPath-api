@@ -14,7 +14,7 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
 
     @Query("SELECT j FROM Job j WHERE j.isActive = true " +
            "AND (:cursor IS NULL OR j.id < :cursor) " +
-           "AND (:keyword IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(j.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (CAST(:keyword AS string) IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')) OR j.description LIKE CONCAT('%', CAST(:keyword AS string), '%')) " +
            "AND (:categoryId IS NULL OR j.category.id = :categoryId) " +
            "AND (:locationId IS NULL OR j.location.id = :locationId) " +
            "AND (:jobType IS NULL OR j.jobType = :jobType) " +
@@ -29,4 +29,6 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
     List<Job> findByCompanyId(Integer companyId);
 
     long countByIsActiveTrue();
+
+    boolean existsByCategoryId(Integer categoryId);
 }

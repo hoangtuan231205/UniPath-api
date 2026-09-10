@@ -6,6 +6,8 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -20,4 +22,5 @@ public class FeedItemResponse {
     private LocalDateTime timestamp;
     private JobResponse jobDetails;
     private CommunityPostResponse postDetails;
+    private List<PostMediaResponse> media;
 }

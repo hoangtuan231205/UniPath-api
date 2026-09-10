@@ -6,6 +6,8 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -21,4 +23,5 @@ public class CommunityPostResponse {
     private long commentsCount;
     private Boolean isLiked;
     private String type; // Always "POST"
+    private List<PostMediaResponse> media;
 }

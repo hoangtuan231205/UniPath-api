@@ -59,11 +59,13 @@ Tài liệu chi tiết các API tạo, cập nhật, đóng, xoá, xem chi tiế
 | `companyId` | `Integer` | ID công ty |
 | `companyName` | `String` | Tên công ty |
 | `companyScale` | `String` | Quy mô công ty (ENTERPRISE / SME) |
+| `companyLogoUrl` | `String` | Đường dẫn logo công ty |
 | `skills` | `List<String>` | Danh sách tên kỹ năng |
-| `likesCount` | `long` | Số lượt thắc/thích |
+| `likesCount` | `long` | Số lượt thả tim |
 | `commentsCount` | `long` | Số bình luận |
 | `sharesCount` | `long` | Số lượt chia sẻ |
 | `applicationsCount` | `long` | Số lượt ứng tuyển |
+| `isLiked` | `Boolean` | Trạng thái thả tim của user hiện tại (`true`/`false`, dựa vào Token) |
 | `isActive` | `Boolean` | Trạng thái hiển thị tin (`false` khi vừa tạo) |
 | `postedAt` | `LocalDateTime` | Thời gian đăng tin |
 | `type` | `String` | Luôn trả về `"JOB"` |

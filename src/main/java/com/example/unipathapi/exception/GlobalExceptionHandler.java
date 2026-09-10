@@ -13,19 +13,42 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Bắt lỗi khi người dùng nhập sai kiểu dữ liệu (vd: nhập chữ vào chỗ của số tọa độ)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Object> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.BAD_REQUEST.value());
         body.put("error", "Dữ liệu đầu vào không hợp lệ");
-        body.put("message", "Vui lòng kiểm tra lại. Tọa độ phải là định dạng số.");
+        body.put("message", "Vui lòng kiểm tra lại. Định dạng dữ liệu không phù hợp.");
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-    // Bắt tất cả các lỗi hệ thống không lường trước được
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Object> handleRuntimeException(RuntimeException ex) {
+        String msg = ex.getMessage() != null ? ex.getMessage() : "Lỗi xử lý yêu cầu";
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+
+        if (msg.startsWith("403:")) {
+            status = HttpStatus.FORBIDDEN;
+            msg = msg.substring(4).trim();
+        } else if (msg.startsWith("404:")) {
+            status = HttpStatus.NOT_FOUND;
+            msg = msg.substring(4).trim();
+        } else if (msg.startsWith("400:")) {
+            status = HttpStatus.BAD_REQUEST;
+            msg = msg.substring(4).trim();
+        }
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
+        body.put("message", msg);
+
+        return new ResponseEntity<>(body, status);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGeneralException(Exception ex) {
         Map<String, Object> body = new LinkedHashMap<>();

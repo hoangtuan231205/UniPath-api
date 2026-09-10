@@ -1,5 +1,7 @@
 package com.example.unipathapi.controller;
 
+import com.example.unipathapi.dto.request.CompanyRequest;
+import jakarta.validation.Valid;
 import com.example.unipathapi.service.AdminService;
 import com.example.unipathapi.util.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,12 +21,35 @@ public class AdminCompanyController {
     @Autowired
     private SecurityUtil securityUtil;
 
+    @PostMapping
+    public ResponseEntity<?> createCompanyByAdmin(@Valid @RequestBody CompanyRequest request, HttpServletRequest httpRequest) {
+        try {
+            Integer adminUserId = validateSuperAdminRole(httpRequest);
+            return ResponseEntity.ok(adminService.createCompanyByAdmin(request, adminUserId));
+        } catch (RuntimeException e) {
+            return handleException(e);
+        }
+    }
+
     @GetMapping
     public ResponseEntity<?> getCompaniesByStatus(@RequestParam(required = false, defaultValue = "PENDING") String status,
                                                   HttpServletRequest request) {
         try {
-            validateAdminRole(request);
+            validateAdminOrSuperAdminRole(request);
             return ResponseEntity.ok(adminService.getCompaniesByStatus(status));
+        } catch (RuntimeException e) {
+            return handleException(e);
+        }
+    }
+
+    @PostMapping("/{id}/assign-admin")
+    public ResponseEntity<?> assignCompanyAdmin(@PathVariable Integer id,
+                                                @RequestParam Integer userId,
+                                                @RequestParam(required = false, defaultValue = "COMPANY_ADMIN") String role,
+                                                HttpServletRequest request) {
+        try {
+            Integer adminUserId = validateSuperAdminRole(request);
+            return ResponseEntity.ok(adminService.addCompanyMemberByAdmin(id, userId, role, adminUserId));
         } catch (RuntimeException e) {
             return handleException(e);
         }
@@ -33,7 +58,7 @@ public class AdminCompanyController {
     @PatchMapping("/{id}/approve")
     public ResponseEntity<?> approveCompanyProposal(@PathVariable Integer id, HttpServletRequest request) {
         try {
-            Integer adminUserId = validateAdminRole(request);
+            Integer adminUserId = validateSuperAdminRole(request);
             return ResponseEntity.ok(adminService.approveCompanyProposal(id, adminUserId));
         } catch (RuntimeException e) {
             return handleException(e);
@@ -43,17 +68,25 @@ public class AdminCompanyController {
     @PatchMapping("/{id}/reject")
     public ResponseEntity<?> rejectCompanyProposal(@PathVariable Integer id, HttpServletRequest request) {
         try {
-            Integer adminUserId = validateAdminRole(request);
+            Integer adminUserId = validateSuperAdminRole(request);
             return ResponseEntity.ok(adminService.rejectCompanyProposal(id, adminUserId));
         } catch (RuntimeException e) {
             return handleException(e);
         }
     }
 
-    private Integer validateAdminRole(HttpServletRequest request) {
+    private Integer validateSuperAdminRole(HttpServletRequest request) {
         String role = securityUtil.getCurrentUserRole(request);
-        if (!"ADMIN".equalsIgnoreCase(role)) {
-            throw new RuntimeException("403: Chỉ System Admin mới có quyền truy cập API này");
+        if (!"SUPERADMIN".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
+            throw new RuntimeException("403: Chỉ SUPERADMIN hoặc Quản trị viên cấp cao mới có quyền phê duyệt hoặc từ chối công ty");
+        }
+        return securityUtil.getCurrentUserId(request);
+    }
+
+    private Integer validateAdminOrSuperAdminRole(HttpServletRequest request) {
+        String role = securityUtil.getCurrentUserRole(request);
+        if (!"ADMIN".equalsIgnoreCase(role) && !"SUPERADMIN".equalsIgnoreCase(role)) {
+            throw new RuntimeException("403: Bạn không có quyền truy cập API quản trị này");
         }
         return securityUtil.getCurrentUserId(request);
     }

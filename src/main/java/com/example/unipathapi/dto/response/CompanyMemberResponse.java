@@ -16,6 +16,6 @@ public class CompanyMemberResponse {
     private Integer userId;
     private String fullName;
     private String email;
-    private String memberRole; // 'COMPANY_ADMIN', 'RECRUITER'
+    private String memberRole;
     private LocalDateTime joinedAt;
 }

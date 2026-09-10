@@ -1,9 +1,12 @@
 package com.example.unipathapi.util;
 
+import com.example.unipathapi.entity.User;
+import com.example.unipathapi.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -12,6 +15,9 @@ import java.security.Key;
 public class SecurityUtil {
 
     private static final String SECRET_KEY = "UniPath_SecretKey_Chuyen_Xy_Ly_Bao_Mat_2026_@#$!";
+
+    @Autowired
+    private UserRepository userRepository;
 
     private Key getSignKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
@@ -29,7 +35,13 @@ public class SecurityUtil {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-            return Integer.parseInt(claims.getSubject());
+            Integer userId = Integer.parseInt(claims.getSubject());
+            
+            // Security Enforcement: Validate account is active
+            validateActiveUser(userId);
+            return userId;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Token không hợp lệ hoặc đã hết hạn");
         }
@@ -59,6 +71,14 @@ public class SecurityUtil {
             return claims.get("role", String.class);
         } catch (Exception e) {
             throw new RuntimeException("Token không hợp lệ hoặc đã hết hạn");
+        }
+    }
+
+    public void validateActiveUser(Integer userId) {
+        if (userId == null) return;
+        User user = userRepository.findById(userId).orElse(null);
+        if (user != null && Boolean.FALSE.equals(user.getIsActive())) {
+            throw new RuntimeException("403: Tài khoản của bạn đã bị khóa, không thể thực hiện thao tác này");
         }
     }
 }

@@ -30,6 +30,10 @@ public class Job {
     @JoinColumn(name = "category_id")
     private JobCategory category;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "posted_by")
+    private User postedBy;
+
     @Column(nullable = false, length = 255)
     private String title;
 

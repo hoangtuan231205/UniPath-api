@@ -15,15 +15,21 @@ public class ApplicationResponse {
     private String jobTitle;
     private String companyName;
 
-    private Integer studentId;
-    private String studentName;
-    private String studentEmail;
+    private Integer candidateId;
+    private String candidateName;
+    private String candidateEmail;
 
+    private Integer cvProfileId;
     private String cvUrl;
     private String cvFilename;
     private String cvFileType;
     private LocalDateTime cvUploadedAt;
 
+    private String coverLetter;
     private String status;
     private LocalDateTime appliedAt;
+
+    private String note;
+    private LocalDateTime interviewAt;
+    private String interviewLocation;
 }

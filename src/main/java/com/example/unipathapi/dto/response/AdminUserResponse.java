@@ -16,4 +16,9 @@ public class AdminUserResponse {
     private Boolean isActive;
     private LocalDateTime createdAt;
     private String fullName;
+
+    // Company affiliation
+    private Integer companyId;
+    private String companyName;
+    private String companyRole;
 }

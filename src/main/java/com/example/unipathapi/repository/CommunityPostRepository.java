@@ -12,6 +12,11 @@ import java.util.List;
 @Repository
 public interface CommunityPostRepository extends JpaRepository<CommunityPost, Integer> {
 
-    @Query("SELECT p FROM CommunityPost p WHERE (:cursor IS NULL OR p.id < :cursor) ORDER BY p.createdAt DESC, p.id DESC")
+    @Query("SELECT p FROM CommunityPost p WHERE p.isActive = true " +
+           "AND (:cursor IS NULL OR p.id < :cursor) ORDER BY p.createdAt DESC, p.id DESC")
     List<CommunityPost> findPostsFeed(@Param("cursor") Integer cursor, Pageable pageable);
+
+    @Query("SELECT p FROM CommunityPost p WHERE p.author.id = :userId AND p.isActive = true " +
+           "AND (:cursor IS NULL OR p.id < :cursor) ORDER BY p.createdAt DESC, p.id DESC")
+    List<CommunityPost> findUserPostsFeed(@Param("userId") Integer userId, @Param("cursor") Integer cursor, Pageable pageable);
 }

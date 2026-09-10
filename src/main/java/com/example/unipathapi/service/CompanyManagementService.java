@@ -18,6 +18,122 @@ import java.util.stream.Collectors;
 @Service
 public class CompanyManagementService {
 
+    // Helper method to normalize company names (lowercase, remove Vietnamese diacritics, collapse whitespace)
+    public static String normalizeCompanyName(String input) {
+        if (input == null) return "";
+        String normalized = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD);
+        normalized = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        normalized = normalized.replaceAll("[đĐ]", "d");
+        normalized = normalized.toLowerCase();
+        normalized = normalized.replaceAll("[^a-z0-9\\s]", " ");
+        normalized = normalized.replaceAll("\\s+", " ").trim();
+        return normalized;
+    }
+
+    // Trigram-like Jaccard/Dice similarity between two normalized strings
+    private static double calculateSimilarity(String s1, String s2) {
+        if (s1.equals(s2)) return 1.0;
+        if (s1.length() < 2 || s2.length() < 2) return 0.0;
+
+        java.util.Set<String> set1 = new java.util.HashSet<>();
+        for (int i = 0; i < s1.length() - 1; i++) {
+            set1.add(s1.substring(i, i + 2));
+        }
+
+        java.util.Set<String> set2 = new java.util.HashSet<>();
+        for (int i = 0; i < s2.length() - 1; i++) {
+            set2.add(s2.substring(i, i + 2));
+        }
+
+        java.util.Set<String> intersection = new java.util.HashSet<>(set1);
+        intersection.retainAll(set2);
+
+        return (2.0 * intersection.size()) / (set1.size() + set2.size());
+    }
+
+    @Transactional
+    public com.example.unipathapi.dto.response.CompanyProposeResponse proposeCompany(Integer userId, com.example.unipathapi.dto.request.CompanyProposeRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+        String rawName = request.getCompanyName() != null ? request.getCompanyName().trim() : "";
+        if (rawName.isEmpty()) {
+            throw new RuntimeException("Tên công ty không được để trống");
+        }
+
+        String normalizedInput = normalizeCompanyName(rawName);
+        List<Company> allCompanies = companyRepository.findAll();
+
+        // 1. Tầng 1: Exact duplicate check
+        for (Company c : allCompanies) {
+            String normExist = normalizeCompanyName(c.getCompanyName());
+            if (normExist.equals(normalizedInput)) {
+                throw new RuntimeException("Công ty \"" + c.getCompanyName() + "\" đã tồn tại trong hệ thống. Vui lòng chọn công ty này từ danh sách tìm kiếm thay vì đề xuất mới.");
+            }
+        }
+
+        // Check taxCode duplicate if provided
+        if (request.getTaxCode() != null && !request.getTaxCode().trim().isEmpty()) {
+            if (companyRepository.findByTaxCode(request.getTaxCode().trim()).isPresent()) {
+                throw new RuntimeException("Mã số thuế đã tồn tại trên hệ thống");
+            }
+        }
+
+        // 2. Tầng 2: Fuzzy matching warning (only if not confirmed and length >= 4)
+        if (!Boolean.TRUE.equals(request.getConfirmed()) && normalizedInput.length() >= 4) {
+            List<com.example.unipathapi.dto.response.CompanyProposeResponse.SimilarCompanyDTO> similarList = new java.util.ArrayList<>();
+            for (Company c : allCompanies) {
+                String normExist = normalizeCompanyName(c.getCompanyName());
+                double sim = calculateSimilarity(normalizedInput, normExist);
+                if (sim >= 0.65) {
+                    similarList.add(com.example.unipathapi.dto.response.CompanyProposeResponse.SimilarCompanyDTO.builder()
+                            .id(c.getId())
+                            .companyName(c.getCompanyName())
+                            .similarity(Math.round(sim * 100.0) / 100.0)
+                            .build());
+                }
+            }
+
+            if (!similarList.isEmpty()) {
+                similarList.sort((a, b) -> Double.compare(b.getSimilarity(), a.getSimilarity()));
+                return com.example.unipathapi.dto.response.CompanyProposeResponse.builder()
+                        .success(false)
+                        .duplicate(false)
+                        .warning(true)
+                        .message("Có vẻ tên công ty bạn nhập tương tự với một công ty đã tồn tại trong hệ thống.")
+                        .similarCompanies(similarList)
+                        .build();
+            }
+        }
+
+        // 3. Insert Company with status PENDING
+        Company newCompany = new Company();
+        newCompany.setCompanyName(rawName);
+        newCompany.setTaxCode(request.getTaxCode() != null ? request.getTaxCode().trim() : null);
+        newCompany.setCompanyScale(request.getCompanyScale() != null ? request.getCompanyScale() : "SME");
+        newCompany.setPhoneNumber(request.getPhoneNumber());
+        newCompany.setWebsite(request.getWebsite());
+        newCompany.setDescription(request.getDescription());
+        newCompany.setStatus("PENDING");
+        newCompany.setCreatedBy(user);
+
+        Company saved = companyRepository.save(newCompany);
+
+        // Tự động thêm 1 dòng company_members cho người đề xuất với vai trò COMPANY_ADMIN
+        CompanyMember creatorMember = new CompanyMember(saved, user, "COMPANY_ADMIN");
+        memberRepository.save(creatorMember);
+
+        return com.example.unipathapi.dto.response.CompanyProposeResponse.builder()
+                .success(true)
+                .duplicate(false)
+                .warning(false)
+                .companyId(saved.getId())
+                .companyName(saved.getCompanyName())
+                .message("Đề xuất công ty thành công. Vui lòng chờ Quản trị viên (SUPERADMIN) phê duyệt.")
+                .build();
+    }
+
+
     @Autowired
     private CompanyRepository companyRepository;
 
@@ -52,6 +168,13 @@ public class CompanyManagementService {
     public CompanyResponse createCompany(Integer userId, CompanyRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+        // Validation: 1 tài khoản không thể là COMPANY_ADMIN ở 2 công ty khác nhau
+        boolean alreadyAdmin = memberRepository.findByUserId(userId).stream()
+                .anyMatch(m -> "COMPANY_ADMIN".equalsIgnoreCase(m.getMemberRole()));
+        if (alreadyAdmin) {
+            throw new RuntimeException("Tài khoản này đã là Quản trị viên (Company Admin) của một công ty khác. Một tài khoản không thể làm Admin của 2 công ty cùng lúc.");
+        }
 
         if (request.getTaxCode() != null && !request.getTaxCode().trim().isEmpty()) {
             if (companyRepository.findByTaxCode(request.getTaxCode()).isPresent()) {

@@ -24,6 +24,9 @@ public class Application {
     @JoinColumn(name = "candidate_id")
     private User candidate;
 
+    @Column(name = "cv_profile_id")
+    private Integer cvProfileId;
+
     @Column(name = "cv_url", columnDefinition = "TEXT")
     private String cvUrl;
 
@@ -36,9 +39,21 @@ public class Application {
     @Column(name = "cv_uploaded_at", insertable = false, updatable = false)
     private LocalDateTime cvUploadedAt;
 
+    @Column(name = "cover_letter", columnDefinition = "TEXT")
+    private String coverLetter;
+
     @Column(length = 50)
     private String status = "SUBMITTED";
 
     @Column(name = "applied_at", insertable = false, updatable = false)
     private LocalDateTime appliedAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String note;
+
+    @Column(name = "interview_at")
+    private LocalDateTime interviewAt;
+
+    @Column(name = "interview_location", length = 255)
+    private String interviewLocation;
 }

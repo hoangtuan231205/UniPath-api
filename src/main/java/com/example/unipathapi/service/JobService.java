@@ -52,6 +52,9 @@ public class JobService {
     @Autowired
     private ApplicationRepository applicationRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Transactional
     public JobResponse createJob(Integer userId, JobRequest request) {
         List<CompanyMember> members = memberRepository.findByUserId(userId);
@@ -64,8 +67,12 @@ public class JobService {
             throw new RuntimeException("Công ty của bạn chưa được System Admin duyệt");
         }
 
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Tài khoản người đăng tin không tồn tại"));
+
         Job job = new Job();
         job.setCompany(company);
+        job.setPostedBy(currentUser);
         job.setTitle(request.getTitle());
         job.setJobType(request.getJobType());
         job.setSalaryRange(request.getSalaryRange());

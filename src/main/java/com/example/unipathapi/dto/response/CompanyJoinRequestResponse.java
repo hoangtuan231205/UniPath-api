@@ -20,5 +20,6 @@ public class CompanyJoinRequestResponse {
     private String message;
     private LocalDateTime requestedAt;
     private LocalDateTime reviewedAt;
+    private Integer reviewedById;
     private String reviewedByName;
 }

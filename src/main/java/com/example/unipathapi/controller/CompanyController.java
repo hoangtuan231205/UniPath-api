@@ -31,6 +31,16 @@ public class CompanyController {
         }
     }
 
+        @PostMapping("/api/companies/propose")
+    public ResponseEntity<?> proposeCompany(@Valid @RequestBody com.example.unipathapi.dto.request.CompanyProposeRequest proposeRequest, HttpServletRequest request) {
+        try {
+            Integer userId = securityUtil.getCurrentUserId(request);
+            return ResponseEntity.ok(companyService.proposeCompany(userId, proposeRequest));
+        } catch (RuntimeException e) {
+            return handleException(e);
+        }
+    }
+
     @GetMapping("/api/companies/search")
     public ResponseEntity<?> searchCompanies(@RequestParam(required = false, defaultValue = "") String keyword) {
         try {

@@ -25,4 +25,10 @@ public class CompanyResponse {
     private String approvedByEmail;
     private LocalDateTime approvedAt;
     private LocalDateTime createdAt;
+
+    // Company Admin & Staff info
+    private Integer companyAdminUserId;
+    private String companyAdminEmail;
+    private String companyAdminFullName;
+    private Integer totalMembers;
 }

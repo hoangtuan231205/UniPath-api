@@ -14,6 +14,24 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+        @PostMapping("/register/candidate")
+    public ResponseEntity<?> registerCandidate(@jakarta.validation.Valid @RequestBody com.example.unipathapi.dto.request.CandidateRegisterRequest request) {
+        try {
+            return ResponseEntity.ok(authService.registerCandidate(request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/register/employer")
+    public ResponseEntity<?> registerEmployer(@jakarta.validation.Valid @RequestBody com.example.unipathapi.dto.request.EmployerRegisterRequest request) {
+        try {
+            return ResponseEntity.ok(authService.registerEmployer(request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody AuthRequest request) {
         try {
@@ -29,6 +47,9 @@ public class AuthController {
         try {
             return ResponseEntity.ok(authService.login(request));
         } catch (RuntimeException e) {
+            if (e.getMessage() != null && (e.getMessage().contains("khoá") || e.getMessage().contains("khóa"))) {
+                return ResponseEntity.status(403).body(e.getMessage());
+            }
             return ResponseEntity.status(401).body(e.getMessage());
         }
     }

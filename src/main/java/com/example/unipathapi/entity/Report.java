@@ -20,15 +20,22 @@ public class Report {
     @JoinColumn(name = "reporter_id")
     private User reporter;
 
+    @Column(name = "target_type", length = 10, nullable = false)
+    private String targetType = "JOB"; // 'JOB', 'POST'
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
     private Job job;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private CommunityPost post;
 
     @Column(columnDefinition = "TEXT")
     private String reason;
 
     @Column(length = 50)
-    private String status = "PENDING";
+    private String status = "PENDING"; // 'PENDING', 'RESOLVED', 'REJECTED'
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resolved_by")

@@ -19,6 +19,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.example.unipathapi.dto.response.PostMediaResponse;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 @Service
 public class CommunityPostService {
 
@@ -39,6 +43,12 @@ public class CommunityPostService {
 
     @Autowired
     private PostCommentRepository postCommentRepository;
+
+    @Autowired
+    private PostMediaRepository postMediaRepository;
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @Autowired
     private JobService jobService;
@@ -155,6 +165,26 @@ public class CommunityPostService {
                 .collect(Collectors.toList());
     }
 
+    public List<CommunityPostResponse> getUserPosts(Integer targetUserId, Integer cursor, Integer currentUserId) {
+        Pageable pageable = PageRequest.of(0, 20);
+        List<CommunityPost> posts = postRepository.findUserPostsFeed(targetUserId, cursor, pageable);
+        if (posts.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Set<Integer> likedPostIds;
+        if (currentUserId != null) {
+            List<Integer> postIds = posts.stream().map(CommunityPost::getId).collect(Collectors.toList());
+            likedPostIds = postLikeRepository.findLikedPostIdsByUserIdAndPostIds(currentUserId, postIds);
+        } else {
+            likedPostIds = Collections.emptySet();
+        }
+
+        return posts.stream()
+                .map(post -> buildPostResponse(post, likedPostIds.contains(post.getId())))
+                .collect(Collectors.toList());
+    }
+
     public CommunityPostResponse buildPostResponse(CommunityPost post) {
         return buildPostResponse(post, false);
     }
@@ -176,6 +206,22 @@ public class CommunityPostService {
         long likesCount = postLikeRepository.countByPostId(post.getId());
         long commentsCount = postCommentRepository.countByPostId(post.getId());
 
+        List<PostMedia> mediaList = postMediaRepository.findByPostIdOrderByDisplayOrderAsc(post.getId());
+        List<PostMediaResponse> mediaResponses = mediaList.stream()
+                .map(m -> PostMediaResponse.builder()
+                        .id(m.getId())
+                        .postId(post.getId())
+                        .fileUrl(m.getFileUrl())
+                        .fileType(m.getFileType())
+                        .mimeType(m.getMimeType())
+                        .fileSizeBytes(m.getFileSizeBytes())
+                        .displayOrder(m.getDisplayOrder())
+                        .uploadedAt(m.getUploadedAt())
+                        .build())
+                .collect(Collectors.toList());
+
+        java.time.LocalDateTime createdAt = post.getCreatedAt() != null ? post.getCreatedAt() : java.time.LocalDateTime.now();
+
         return CommunityPostResponse.builder()
                 .id(post.getId())
                 .authorId(post.getAuthor().getId())
@@ -183,11 +229,75 @@ public class CommunityPostService {
                 .authorAvatarUrl(authorAvatarUrl)
                 .title(post.getTitle())
                 .content(post.getContent())
-                .createdAt(post.getCreatedAt())
+                .createdAt(createdAt)
                 .likesCount(likesCount)
                 .commentsCount(commentsCount)
                 .isLiked(isLiked != null ? isLiked : false)
                 .type("POST")
+                .media(mediaResponses)
                 .build();
+    }
+
+    @Transactional
+    public List<PostMediaResponse> uploadPostMedia(Integer postId, Integer userId, List<MultipartFile> files) {
+        CommunityPost post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết cộng đồng"));
+
+        if (!post.getAuthor().getId().equals(userId)) {
+            throw new RuntimeException("Bạn không phải tác giả của bài viết này");
+        }
+
+        if (files == null || files.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<String> storedUrls = fileStorageService.storeFiles(files, "posts/" + postId);
+        long existingCount = postMediaRepository.countByPostId(postId);
+
+        List<PostMediaResponse> result = new ArrayList<>();
+        int orderOffset = (int) existingCount;
+
+        for (int i = 0; i < files.size() && i < storedUrls.size(); i++) {
+            MultipartFile file = files.get(i);
+            String url = storedUrls.get(i);
+            String mimeType = file.getContentType();
+            String fileType = (mimeType != null && mimeType.toLowerCase().startsWith("image/")) ? "IMAGE" : "FILE";
+
+            PostMedia media = new PostMedia();
+            media.setPost(post);
+            media.setFileUrl(url);
+            media.setFileType(fileType);
+            media.setMimeType(mimeType);
+            media.setFileSizeBytes((int) file.getSize());
+            media.setDisplayOrder(orderOffset + i);
+
+            PostMedia saved = postMediaRepository.save(media);
+
+            result.add(PostMediaResponse.builder()
+                    .id(saved.getId())
+                    .postId(postId)
+                    .fileUrl(saved.getFileUrl())
+                    .fileType(saved.getFileType())
+                    .mimeType(saved.getMimeType())
+                    .fileSizeBytes(saved.getFileSizeBytes())
+                    .displayOrder(saved.getDisplayOrder())
+                    .uploadedAt(saved.getUploadedAt())
+                    .build());
+        }
+
+        return result;
+    }
+
+    @Transactional
+    public void deletePostMedia(Integer mediaId, Integer userId) {
+        PostMedia media = postMediaRepository.findById(mediaId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tệp đính kèm"));
+
+        if (!media.getPost().getAuthor().getId().equals(userId)) {
+            throw new RuntimeException("Bạn không có quyền xoá tệp đính kèm này");
+        }
+
+        postMediaRepository.delete(media);
+        fileStorageService.deleteFile(media.getFileUrl());
     }
 }

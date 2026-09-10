@@ -14,8 +14,14 @@ public class ReportResponse {
     private Integer reporterId;
     private String reporterEmail;
 
+    private String targetType; // "JOB", "POST"
+
     private Integer jobId;
     private String jobTitle;
+
+    private Integer postId;
+    private String postTitle;
+    private String postAuthorEmail;
 
     private String reason;
     private String status;
