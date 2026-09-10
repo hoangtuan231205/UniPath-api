@@ -1,4 +1,4 @@
-package com.example.unipathapi.entity;
+package com.example.unipathapi.community.entity;
 import com.example.unipathapi.user.entity.User;
 
 import jakarta.persistence.*;
@@ -10,25 +10,20 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Table(name = "community_posts")
-public class CommunityPost {
+@Table(name = "post_likes")
+public class PostLike {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id")
-    private User author;
+    @JoinColumn(name = "post_id", nullable = false)
+    private CommunityPost post;
 
-    @Column(length = 255)
-    private String title;
-
-    @Column(columnDefinition = "TEXT")
-    private String content;
-
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;

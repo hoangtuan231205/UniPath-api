@@ -1,4 +1,4 @@
-package com.example.unipathapi.dto.response;
+package com.example.unipathapi.community.dto.response;
 import com.example.unipathapi.job.entity.*;
 import com.example.unipathapi.job.repository.*;
 import com.example.unipathapi.job.dto.request.*;

@@ -1,4 +1,9 @@
-package com.example.unipathapi.service;
+package com.example.unipathapi.community.service;
+import com.example.unipathapi.community.entity.*;
+import com.example.unipathapi.community.repository.*;
+import com.example.unipathapi.community.dto.request.*;
+import com.example.unipathapi.community.dto.response.*;
+import com.example.unipathapi.community.service.*;
 import com.example.unipathapi.job.entity.*;
 import com.example.unipathapi.job.repository.*;
 import com.example.unipathapi.job.dto.request.*;
@@ -11,8 +16,8 @@ import com.example.unipathapi.candidate.entity.CandidateProfile;
 import com.example.unipathapi.user.entity.User;
 import com.example.unipathapi.user.repository.UserRepository;
 
-import com.example.unipathapi.dto.request.CommentRequest;
-import com.example.unipathapi.dto.response.CommentResponse;
+import com.example.unipathapi.community.dto.request.CommentRequest;
+import com.example.unipathapi.community.dto.response.CommentResponse;
 import com.example.unipathapi.entity.*;
 import com.example.unipathapi.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,7 +1,8 @@
-package com.example.unipathapi.repository;
+package com.example.unipathapi.community.repository;
+import com.example.unipathapi.community.entity.*;
 import com.example.unipathapi.user.entity.User;
 
-import com.example.unipathapi.entity.PostLike;
+import com.example.unipathapi.community.entity.PostLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

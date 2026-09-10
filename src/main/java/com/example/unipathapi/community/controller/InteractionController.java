@@ -1,12 +1,17 @@
-package com.example.unipathapi.controller;
+package com.example.unipathapi.community.controller;
+import com.example.unipathapi.community.entity.*;
+import com.example.unipathapi.community.repository.*;
+import com.example.unipathapi.community.dto.request.*;
+import com.example.unipathapi.community.dto.response.*;
+import com.example.unipathapi.community.service.*;
 import com.example.unipathapi.job.entity.*;
 import com.example.unipathapi.job.repository.*;
 import com.example.unipathapi.job.dto.request.*;
 import com.example.unipathapi.job.dto.response.*;
 import com.example.unipathapi.job.service.*;
 
-import com.example.unipathapi.dto.request.CommentRequest;
-import com.example.unipathapi.service.InteractionService;
+import com.example.unipathapi.community.dto.request.CommentRequest;
+import com.example.unipathapi.community.service.InteractionService;
 import com.example.unipathapi.common.security.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

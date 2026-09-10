@@ -1,4 +1,6 @@
 package com.example.unipathapi.entity;
+import com.example.unipathapi.community.entity.CommunityPost;
+import com.example.unipathapi.community.repository.CommunityPostRepository;
 import com.example.unipathapi.job.entity.*;
 import com.example.unipathapi.job.repository.*;
 import com.example.unipathapi.job.dto.request.*;

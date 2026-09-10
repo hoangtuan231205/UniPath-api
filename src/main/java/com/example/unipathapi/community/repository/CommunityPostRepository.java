@@ -1,6 +1,7 @@
-package com.example.unipathapi.repository;
+package com.example.unipathapi.community.repository;
+import com.example.unipathapi.community.entity.*;
 
-import com.example.unipathapi.entity.CommunityPost;
+import com.example.unipathapi.community.entity.CommunityPost;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

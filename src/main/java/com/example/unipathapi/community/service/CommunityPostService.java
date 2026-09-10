@@ -1,4 +1,9 @@
-package com.example.unipathapi.service;
+package com.example.unipathapi.community.service;
+import com.example.unipathapi.community.entity.*;
+import com.example.unipathapi.community.repository.*;
+import com.example.unipathapi.community.dto.request.*;
+import com.example.unipathapi.community.dto.response.*;
+import com.example.unipathapi.community.service.*;
 import com.example.unipathapi.job.entity.*;
 import com.example.unipathapi.job.repository.*;
 import com.example.unipathapi.job.dto.request.*;
@@ -11,9 +16,9 @@ import com.example.unipathapi.candidate.entity.CandidateProfile;
 import com.example.unipathapi.user.entity.User;
 import com.example.unipathapi.user.repository.UserRepository;
 
-import com.example.unipathapi.dto.request.CommunityPostRequest;
-import com.example.unipathapi.dto.response.CommunityPostResponse;
-import com.example.unipathapi.dto.response.FeedItemResponse;
+import com.example.unipathapi.community.dto.request.CommunityPostRequest;
+import com.example.unipathapi.community.dto.response.CommunityPostResponse;
+import com.example.unipathapi.community.dto.response.FeedItemResponse;
 import com.example.unipathapi.job.dto.response.JobResponse;
 import com.example.unipathapi.entity.*;
 import com.example.unipathapi.repository.*;
@@ -30,7 +35,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.example.unipathapi.dto.response.PostMediaResponse;
+import com.example.unipathapi.community.dto.response.PostMediaResponse;
 import com.example.unipathapi.common.storage.FileStorageService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
