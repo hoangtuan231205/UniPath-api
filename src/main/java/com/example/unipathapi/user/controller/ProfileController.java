@@ -1,7 +1,7 @@
 package com.example.unipathapi.user.controller;
 import com.example.unipathapi.user.entity.User;
 
-import com.example.unipathapi.dto.request.CandidateProfileRequest;
+import com.example.unipathapi.candidate.dto.request.CandidateProfileRequest;
 import com.example.unipathapi.dto.request.EmployerProfileRequest;
 import com.example.unipathapi.user.service.ProfileService;
 import com.example.unipathapi.common.security.SecurityUtil;

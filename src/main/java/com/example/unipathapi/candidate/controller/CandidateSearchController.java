@@ -1,6 +1,6 @@
-package com.example.unipathapi.controller;
+package com.example.unipathapi.candidate.controller;
 
-import com.example.unipathapi.service.CandidateSearchService;
+import com.example.unipathapi.candidate.service.CandidateSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,8 +1,8 @@
-package com.example.unipathapi.service;
+package com.example.unipathapi.candidate.service;
 
-import com.example.unipathapi.dto.response.CandidateSearchResponse;
-import com.example.unipathapi.entity.CandidateProfile;
-import com.example.unipathapi.repository.CandidateProfileRepository;
+import com.example.unipathapi.candidate.dto.response.CandidateSearchResponse;
+import com.example.unipathapi.candidate.entity.CandidateProfile;
+import com.example.unipathapi.candidate.repository.CandidateProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

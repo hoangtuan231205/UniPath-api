@@ -1,4 +1,4 @@
-package com.example.unipathapi.entity;
+package com.example.unipathapi.candidate.entity;
 import com.example.unipathapi.user.entity.User;
 
 

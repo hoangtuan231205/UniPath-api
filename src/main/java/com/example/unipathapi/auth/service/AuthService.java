@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     @Autowired
-    private com.example.unipathapi.repository.CandidateProfileRepository candidateProfileRepository;
+    private com.example.unipathapi.candidate.repository.CandidateProfileRepository candidateProfileRepository;
 
     @Autowired
     private com.example.unipathapi.repository.EmployerProfileRepository employerProfileRepository;
@@ -47,7 +47,7 @@ public class AuthService {
         user.setIsActive(true);
         User savedUser = userRepository.save(user);
 
-        com.example.unipathapi.entity.CandidateProfile profile = new com.example.unipathapi.entity.CandidateProfile();
+        com.example.unipathapi.candidate.entity.CandidateProfile profile = new com.example.unipathapi.candidate.entity.CandidateProfile();
         profile.setUser(savedUser);
         profile.setFullName(request.getFullName().trim());
         profile.setPhoneNumber(request.getPhoneNumber());

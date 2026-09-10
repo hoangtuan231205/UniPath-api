@@ -1,4 +1,4 @@
-package com.example.unipathapi.dto.response;
+package com.example.unipathapi.candidate.dto.response;
 
 import lombok.Data;
 
