@@ -1,4 +1,6 @@
 package com.example.unipathapi.service;
+import com.example.unipathapi.employer.repository.EmployerProfileRepository;
+import com.example.unipathapi.employer.entity.EmployerProfile;
 import com.example.unipathapi.candidate.repository.CandidateProfileRepository;
 import com.example.unipathapi.candidate.entity.CandidateProfile;
 import com.example.unipathapi.user.entity.User;

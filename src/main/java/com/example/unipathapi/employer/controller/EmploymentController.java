@@ -1,4 +1,4 @@
-package com.example.unipathapi.controller;
+package com.example.unipathapi.employer.controller;
 
 import com.example.unipathapi.dto.request.EmploymentRequest;
 import com.example.unipathapi.dto.request.ShiftRequest;

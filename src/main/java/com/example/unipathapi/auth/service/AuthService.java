@@ -22,7 +22,7 @@ public class AuthService {
     private com.example.unipathapi.candidate.repository.CandidateProfileRepository candidateProfileRepository;
 
     @Autowired
-    private com.example.unipathapi.repository.EmployerProfileRepository employerProfileRepository;
+    private com.example.unipathapi.employer.repository.EmployerProfileRepository employerProfileRepository;
 
     @Autowired
     private com.example.unipathapi.repository.CompanyRepository companyRepository;
@@ -87,7 +87,7 @@ public class AuthService {
         User savedUser = userRepository.save(user);
 
         // Create Employer Profile
-        com.example.unipathapi.entity.EmployerProfile profile = new com.example.unipathapi.entity.EmployerProfile();
+        com.example.unipathapi.employer.entity.EmployerProfile profile = new com.example.unipathapi.employer.entity.EmployerProfile();
         profile.setUser(savedUser);
         profile.setFullName(request.getFullName().trim());
         profile.setPhone(request.getPhone());

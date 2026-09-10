@@ -1,4 +1,4 @@
-package com.example.unipathapi.dto.request;
+package com.example.unipathapi.employer.dto.request;
 
 import lombok.Data;
 

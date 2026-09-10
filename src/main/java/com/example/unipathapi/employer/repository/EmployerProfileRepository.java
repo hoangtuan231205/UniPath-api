@@ -1,6 +1,8 @@
-package com.example.unipathapi.repository;
+package com.example.unipathapi.employer.repository;
+
+import com.example.unipathapi.employer.entity.EmployerProfile;
 import com.example.unipathapi.candidate.entity.CandidateProfile;
-import com.example.unipathapi.entity.EmployerProfile;
+import com.example.unipathapi.employer.entity.EmployerProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

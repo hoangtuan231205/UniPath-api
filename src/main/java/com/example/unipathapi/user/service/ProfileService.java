@@ -1,14 +1,14 @@
 package com.example.unipathapi.user.service;
 
 import com.example.unipathapi.candidate.dto.request.CandidateProfileRequest;
-import com.example.unipathapi.dto.request.EmployerProfileRequest;
+import com.example.unipathapi.employer.dto.request.EmployerProfileRequest;
 import com.example.unipathapi.candidate.dto.response.CandidateProfileResponse;
-import com.example.unipathapi.dto.response.EmployerProfileResponse;
+import com.example.unipathapi.employer.dto.response.EmployerProfileResponse;
 import com.example.unipathapi.candidate.entity.CandidateProfile;
-import com.example.unipathapi.entity.EmployerProfile;
+import com.example.unipathapi.employer.entity.EmployerProfile;
 import com.example.unipathapi.user.entity.User;
 import com.example.unipathapi.candidate.repository.CandidateProfileRepository;
-import com.example.unipathapi.repository.EmployerProfileRepository;
+import com.example.unipathapi.employer.repository.EmployerProfileRepository;
 import com.example.unipathapi.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
