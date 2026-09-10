@@ -1,4 +1,9 @@
-package com.example.unipathapi.service;
+package com.example.unipathapi.application.service;
+import com.example.unipathapi.application.entity.*;
+import com.example.unipathapi.application.repository.*;
+import com.example.unipathapi.application.dto.request.*;
+import com.example.unipathapi.application.dto.response.*;
+import com.example.unipathapi.application.service.*;
 import com.example.unipathapi.job.entity.*;
 import com.example.unipathapi.job.repository.*;
 import com.example.unipathapi.job.dto.request.*;
@@ -14,10 +19,10 @@ import com.example.unipathapi.candidate.entity.CandidateProfile;
 import com.example.unipathapi.user.entity.User;
 import com.example.unipathapi.user.repository.UserRepository;
 
-import com.example.unipathapi.dto.request.ApplicationRequest;
-import com.example.unipathapi.dto.request.UpdateApplicationStatusRequest;
-import com.example.unipathapi.dto.response.ApplicationResponse;
-import com.example.unipathapi.dto.response.CheckAppliedResponse;
+import com.example.unipathapi.application.dto.request.ApplicationRequest;
+import com.example.unipathapi.application.dto.request.UpdateApplicationStatusRequest;
+import com.example.unipathapi.application.dto.response.ApplicationResponse;
+import com.example.unipathapi.application.dto.response.CheckAppliedResponse;
 import com.example.unipathapi.entity.*;
 import com.example.unipathapi.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;

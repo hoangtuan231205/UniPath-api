@@ -1,4 +1,4 @@
-package com.example.unipathapi.dto.request;
+package com.example.unipathapi.application.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

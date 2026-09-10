@@ -1,4 +1,6 @@
 package com.example.unipathapi.service;
+import com.example.unipathapi.application.entity.Application;
+import com.example.unipathapi.application.repository.ApplicationRepository;
 import com.example.unipathapi.job.entity.*;
 import com.example.unipathapi.job.repository.*;
 import com.example.unipathapi.job.dto.request.*;

@@ -1,8 +1,13 @@
-package com.example.unipathapi.controller;
+package com.example.unipathapi.application.controller;
+import com.example.unipathapi.application.entity.*;
+import com.example.unipathapi.application.repository.*;
+import com.example.unipathapi.application.dto.request.*;
+import com.example.unipathapi.application.dto.response.*;
+import com.example.unipathapi.application.service.*;
 
-import com.example.unipathapi.dto.request.UpdateApplicationStatusRequest;
-import com.example.unipathapi.entity.Application;
-import com.example.unipathapi.service.ApplicationService;
+import com.example.unipathapi.application.dto.request.UpdateApplicationStatusRequest;
+import com.example.unipathapi.application.entity.Application;
+import com.example.unipathapi.application.service.ApplicationService;
 import com.example.unipathapi.common.security.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
