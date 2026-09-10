@@ -1,4 +1,4 @@
-//package com.example.unipathapi.config;
+//package com.example.unipathapi.common.config;
 //
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;

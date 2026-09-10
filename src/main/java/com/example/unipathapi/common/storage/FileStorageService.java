@@ -1,4 +1,4 @@
-package com.example.unipathapi.service;
+package com.example.unipathapi.common.storage;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;

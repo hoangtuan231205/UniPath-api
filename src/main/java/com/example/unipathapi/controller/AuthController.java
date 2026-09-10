@@ -55,7 +55,7 @@ public class AuthController {
     }
 
     @Autowired
-    private com.example.unipathapi.util.SecurityUtil securityUtil;
+    private com.example.unipathapi.common.security.SecurityUtil securityUtil;
 
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@jakarta.validation.Valid @RequestBody com.example.unipathapi.dto.request.ChangePasswordRequest request,

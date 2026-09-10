@@ -1,4 +1,4 @@
-package com.example.unipathapi.exception;
+package com.example.unipathapi.common.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

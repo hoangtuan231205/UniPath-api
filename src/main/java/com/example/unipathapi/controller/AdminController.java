@@ -8,7 +8,7 @@ import com.example.unipathapi.dto.request.SkillRequest;
 import com.example.unipathapi.dto.request.UpdateMemberRoleRequest;
 import com.example.unipathapi.service.AdminAuditLogService;
 import com.example.unipathapi.service.AdminService;
-import com.example.unipathapi.util.SecurityUtil;
+import com.example.unipathapi.common.security.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

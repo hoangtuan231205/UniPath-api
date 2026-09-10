@@ -3,7 +3,7 @@ package com.example.unipathapi.controller;
 import com.example.unipathapi.dto.request.CandidateProfileRequest;
 import com.example.unipathapi.dto.request.EmployerProfileRequest;
 import com.example.unipathapi.service.ProfileService;
-import com.example.unipathapi.util.SecurityUtil;
+import com.example.unipathapi.common.security.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package com.example.unipathapi.util;
+package com.example.unipathapi.common.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

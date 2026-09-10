@@ -1,4 +1,4 @@
-package com.example.unipathapi.util;
+package com.example.unipathapi.common.security;
 
 import com.example.unipathapi.entity.User;
 import com.example.unipathapi.repository.UserRepository;

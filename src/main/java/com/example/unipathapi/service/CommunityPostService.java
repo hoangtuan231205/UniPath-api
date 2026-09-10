@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.example.unipathapi.dto.response.PostMediaResponse;
+import com.example.unipathapi.common.storage.FileStorageService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
