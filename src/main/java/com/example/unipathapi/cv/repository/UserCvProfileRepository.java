@@ -1,7 +1,8 @@
-package com.example.unipathapi.repository;
+package com.example.unipathapi.cv.repository;
+import com.example.unipathapi.cv.entity.*;
 import com.example.unipathapi.user.entity.User;
 
-import com.example.unipathapi.entity.UserCvProfile;
+import com.example.unipathapi.cv.entity.UserCvProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

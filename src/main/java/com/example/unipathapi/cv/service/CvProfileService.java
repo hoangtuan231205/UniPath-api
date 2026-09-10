@@ -1,12 +1,17 @@
-package com.example.unipathapi.service;
+package com.example.unipathapi.cv.service;
+import com.example.unipathapi.cv.entity.*;
+import com.example.unipathapi.cv.repository.*;
+import com.example.unipathapi.cv.dto.request.*;
+import com.example.unipathapi.cv.dto.response.*;
+import com.example.unipathapi.cv.service.*;
 
-import com.example.unipathapi.dto.request.CvProfileRequest;
-import com.example.unipathapi.dto.response.CvProfileResponse;
-import com.example.unipathapi.entity.CvTemplate;
+import com.example.unipathapi.cv.dto.request.CvProfileRequest;
+import com.example.unipathapi.cv.dto.response.CvProfileResponse;
+import com.example.unipathapi.cv.entity.CvTemplate;
 import com.example.unipathapi.user.entity.User;
-import com.example.unipathapi.entity.UserCvProfile;
-import com.example.unipathapi.repository.CvTemplateRepository;
-import com.example.unipathapi.repository.UserCvProfileRepository;
+import com.example.unipathapi.cv.entity.UserCvProfile;
+import com.example.unipathapi.cv.repository.CvTemplateRepository;
+import com.example.unipathapi.cv.repository.UserCvProfileRepository;
 import com.example.unipathapi.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,12 @@
-package com.example.unipathapi.controller;
+package com.example.unipathapi.cv.controller;
+import com.example.unipathapi.cv.entity.*;
+import com.example.unipathapi.cv.repository.*;
+import com.example.unipathapi.cv.dto.request.*;
+import com.example.unipathapi.cv.dto.response.*;
+import com.example.unipathapi.cv.service.*;
 
-import com.example.unipathapi.dto.request.CvProfileRequest;
-import com.example.unipathapi.service.CvProfileService;
+import com.example.unipathapi.cv.dto.request.CvProfileRequest;
+import com.example.unipathapi.cv.service.CvProfileService;
 import com.example.unipathapi.common.security.SecurityUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
