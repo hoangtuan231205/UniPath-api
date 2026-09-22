@@ -49,6 +49,48 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, status);
     }
 
+    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+    public ResponseEntity<Object> handleMethodArgumentNotValid(org.springframework.web.bind.MethodArgumentNotValidException ex) {
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
+        for (org.springframework.validation.FieldError error : ex.getBindingResult().getFieldErrors()) {
+            fieldErrors.put(error.getField(), error.getDefaultMessage());
+        }
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Dữ liệu không hợp lệ");
+        body.put("message", "Vui lòng kiểm tra lại các trường thông tin");
+        body.put("errors", fieldErrors);
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<Object> handleDataIntegrityViolation(org.springframework.dao.DataIntegrityViolationException ex) {
+        String rootMsg = ex.getRootCause() != null ? ex.getRootCause().getMessage() : ex.getMessage();
+        String lowerMsg = rootMsg != null ? rootMsg.toLowerCase() : "";
+
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        String userFriendlyMsg = "Dữ liệu vi phạm ràng buộc hệ thống. Vui lòng kiểm tra lại.";
+
+        if (lowerMsg.contains("company_locations_google_place_id_unique")) {
+            status = HttpStatus.CONFLICT;
+            userFriendlyMsg = "Google Place ID này đã được đăng ký cho một địa điểm khác.";
+        } else if (lowerMsg.contains("company_locations_one_primary_per_company")) {
+            status = HttpStatus.CONFLICT;
+            userFriendlyMsg = "Công ty đã có địa điểm chính đang được cập nhật. Vui lòng thử lại.";
+        }
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
+        body.put("message", userFriendlyMsg);
+
+        return new ResponseEntity<>(body, status);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGeneralException(Exception ex) {
         Map<String, Object> body = new LinkedHashMap<>();
