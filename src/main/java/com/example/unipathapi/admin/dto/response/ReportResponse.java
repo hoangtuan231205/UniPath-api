@@ -22,6 +22,8 @@ public class ReportResponse {
     private Integer postId;
     private String postTitle;
     private String postAuthorEmail;
+    private String postAuthorName;
+    private Boolean postIsActive;
 
     private String reason;
     private String status;

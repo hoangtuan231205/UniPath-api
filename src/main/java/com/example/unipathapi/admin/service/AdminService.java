@@ -252,6 +252,18 @@ public class AdminService {
         CommunityPost post = communityPostRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Bài viết không tồn tại"));
 
+        if (Boolean.FALSE.equals(post.getIsActive())) {
+            throw new RuntimeException("Bài viết này đã bị khóa hoặc không còn khả dụng");
+        }
+
+        if (post.getAuthor() != null && post.getAuthor().getId().equals(reporterId)) {
+            throw new RuntimeException("Bạn không thể tự báo cáo bài viết của chính mình");
+        }
+
+        if (reportRepository.existsByReporterIdAndPostIdAndStatus(reporterId, postId, "PENDING")) {
+            throw new RuntimeException("Bạn đã gửi báo cáo cho bài viết này và đang chờ quản trị viên xử lý");
+        }
+
         User reporter = userRepository.findById(reporterId)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
@@ -286,64 +298,92 @@ public class AdminService {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new RuntimeException("Báo cáo không tồn tại"));
 
-        // Principle 6: Terminal status check
+        // Principle: Terminal status check
         if (!"PENDING".equalsIgnoreCase(report.getStatus())) {
             throw new RuntimeException("Báo cáo này đã được xử lý trước đó, không thể xử lý lại");
         }
 
-        // Principle 4: Whitelist action check
-        String action = request.getAction() != null ? request.getAction().toUpperCase() : "";
-        if (!ALLOWED_REPORT_ACTIONS.contains(action)) {
-            throw new RuntimeException("Action xử lý báo cáo không hợp lệ. Chỉ chấp nhận REJECT, BAN_ACCOUNT, DELETE_POST");
-        }
+        String action = request.getAction() != null ? request.getAction().trim().toUpperCase() : "";
 
         User admin = userRepository.findById(adminUserId)
                 .orElseThrow(() -> new RuntimeException("Tài khoản Admin không tồn tại"));
 
-        if ("REJECT".equals(action)) {
-            report.setStatus("REJECTED");
-        } else if ("BAN_ACCOUNT".equals(action)) {
-            if ("JOB".equalsIgnoreCase(report.getTargetType()) && report.getJob() != null) {
-                // Determine accurate target user to ban: postedBy (if available) or company createdBy
-                User targetUser = report.getJob().getPostedBy();
-                if (targetUser == null && report.getJob().getCompany() != null) {
-                    targetUser = report.getJob().getCompany().getCreatedBy();
-                }
-                if (targetUser != null) {
-                    banUser(targetUser.getId(), adminUserId);
-                }
-            } else if ("POST".equalsIgnoreCase(report.getTargetType()) && report.getPost() != null) {
-                User targetUser = report.getPost().getAuthor();
-                if (targetUser != null) {
-                    banUser(targetUser.getId(), adminUserId);
-                }
+        LocalDateTime now = LocalDateTime.now();
+
+        if ("POST".equalsIgnoreCase(report.getTargetType())) {
+            // Strict actions for Community Post
+            if (!Set.of("BAN_POST", "REJECT_REPORT").contains(action)) {
+                throw new RuntimeException("Action xử lý báo cáo bài viết không hợp lệ. Chỉ chấp nhận BAN_POST hoặc REJECT_REPORT");
             }
-            report.setStatus("RESOLVED");
-        } else if ("DELETE_POST".equals(action)) {
-            if ("JOB".equalsIgnoreCase(report.getTargetType()) && report.getJob() != null) {
-                // Soft delete Job (is_active = false)
-                Job job = report.getJob();
-                job.setIsActive(false);
-                jobRepository.save(job);
-            } else if ("POST".equalsIgnoreCase(report.getTargetType()) && report.getPost() != null) {
-                // Soft delete Post (is_active = false)
+
+            if ("BAN_POST".equals(action)) {
                 CommunityPost post = report.getPost();
-                post.setIsActive(false);
-                communityPostRepository.save(post);
+                if (post != null) {
+                    post.setIsActive(false);
+                    communityPostRepository.save(post);
+
+                    // Batch resolve any other PENDING reports for the same post
+                    List<Report> otherReports = reportRepository.findByPostIdAndStatus(post.getId(), "PENDING");
+                    for (Report other : otherReports) {
+                        if (!other.getId().equals(reportId)) {
+                            other.setStatus("RESOLVED");
+                            other.setResolvedBy(admin);
+                            other.setResolvedAt(now);
+                        }
+                    }
+                    reportRepository.saveAll(otherReports);
+                }
+                report.setStatus("RESOLVED");
+                report.setResolvedBy(admin);
+                report.setResolvedAt(now);
+
+                auditLogService.log(adminUserId, "BAN_POST", "POST",
+                        post != null ? post.getId() : 0,
+                        "Khóa bài viết Post ID " + (post != null ? post.getId() : "null") + " và giải quyết báo cáo #" + reportId);
+            } else { // REJECT_REPORT
+                report.setStatus("REJECTED");
+                report.setResolvedBy(admin);
+                report.setResolvedAt(now);
+
+                auditLogService.log(adminUserId, "REJECT_REPORT", "REPORT", reportId,
+                        "Bác bỏ báo cáo Post ID " + (report.getPost() != null ? report.getPost().getId() : "null") + " (Báo cáo #" + reportId + ")");
             }
-            report.setStatus("RESOLVED");
+        } else {
+            // Flow for JOB reports
+            if (!ALLOWED_REPORT_ACTIONS.contains(action)) {
+                throw new RuntimeException("Action xử lý báo cáo không hợp lệ. Chỉ chấp nhận REJECT, BAN_ACCOUNT, DELETE_POST");
+            }
+
+            if ("REJECT".equals(action)) {
+                report.setStatus("REJECTED");
+            } else if ("BAN_ACCOUNT".equals(action)) {
+                if (report.getJob() != null) {
+                    User targetUser = report.getJob().getPostedBy();
+                    if (targetUser == null && report.getJob().getCompany() != null) {
+                        targetUser = report.getJob().getCompany().getCreatedBy();
+                    }
+                    if (targetUser != null) {
+                        banUser(targetUser.getId(), adminUserId);
+                    }
+                }
+                report.setStatus("RESOLVED");
+            } else if ("DELETE_POST".equals(action)) {
+                if (report.getJob() != null) {
+                    Job job = report.getJob();
+                    job.setIsActive(false);
+                    jobRepository.save(job);
+                }
+                report.setStatus("RESOLVED");
+            }
+
+            report.setResolvedBy(admin);
+            report.setResolvedAt(now);
+
+            String targetDesc = "Job ID " + (report.getJob() != null ? report.getJob().getId() : "null");
+            auditLogService.log(adminUserId, "RESOLVE_REPORT", "REPORT", reportId, "Xử lý báo cáo " + targetDesc + " với action: " + action);
         }
 
-        report.setResolvedBy(admin);
-        report.setResolvedAt(LocalDateTime.now());
         Report saved = reportRepository.save(report);
-
-        // Audit log
-        String targetDesc = "JOB".equalsIgnoreCase(report.getTargetType())
-                ? "Job ID " + (report.getJob() != null ? report.getJob().getId() : "null")
-                : "Post ID " + (report.getPost() != null ? report.getPost().getId() : "null");
-        auditLogService.log(adminUserId, "RESOLVE_REPORT", "REPORT", reportId, "Xử lý báo cáo " + targetDesc + " với action: " + action);
-
         return buildReportResponse(saved);
     }
 
@@ -770,17 +810,35 @@ public class AdminService {
         String resolverName = r.getResolvedBy() != null ? r.getResolvedBy().getEmail() : null;
         String postAuthorEmail = (r.getPost() != null && r.getPost().getAuthor() != null)
                 ? r.getPost().getAuthor().getEmail() : null;
+        String postAuthorName = null;
+        if (r.getPost() != null && r.getPost().getAuthor() != null) {
+            User author = r.getPost().getAuthor();
+            if ("CANDIDATE".equalsIgnoreCase(author.getRole())) {
+                postAuthorName = candidateProfileRepository.findById(author.getId())
+                        .map(CandidateProfile::getFullName).orElse(author.getEmail());
+            } else if ("EMPLOYER".equalsIgnoreCase(author.getRole())) {
+                postAuthorName = employerProfileRepository.findById(author.getId())
+                        .map(EmployerProfile::getFullName).orElse(author.getEmail());
+            } else {
+                postAuthorName = author.getEmail();
+            }
+        }
+        Boolean postIsActive = (r.getPost() != null) ? r.getPost().getIsActive() : null;
+        Integer reporterId = (r.getReporter() != null) ? r.getReporter().getId() : null;
+        String reporterEmail = (r.getReporter() != null) ? r.getReporter().getEmail() : null;
 
         return ReportResponse.builder()
                 .id(r.getId())
-                .reporterId(r.getReporter().getId())
-                .reporterEmail(r.getReporter().getEmail())
+                .reporterId(reporterId)
+                .reporterEmail(reporterEmail)
                 .targetType(r.getTargetType())
                 .jobId(r.getJob() != null ? r.getJob().getId() : null)
                 .jobTitle(r.getJob() != null ? r.getJob().getTitle() : null)
                 .postId(r.getPost() != null ? r.getPost().getId() : null)
                 .postTitle(r.getPost() != null ? r.getPost().getTitle() : null)
                 .postAuthorEmail(postAuthorEmail)
+                .postAuthorName(postAuthorName)
+                .postIsActive(postIsActive)
                 .reason(r.getReason())
                 .status(r.getStatus())
                 .resolvedById(r.getResolvedBy() != null ? r.getResolvedBy().getId() : null)

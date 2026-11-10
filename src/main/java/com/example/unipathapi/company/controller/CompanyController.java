@@ -13,8 +13,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -24,7 +26,28 @@ public class CompanyController {
     private CompanyManagementService companyService;
 
     @Autowired
+    private EmploymentInvitationService invitationService;
+
+    @Autowired
     private SecurityUtil securityUtil;
+
+    @GetMapping("/api/employer/companies/{companyId}/employees")
+    public ResponseEntity<?> getCompanyEmployees(@PathVariable Integer companyId, HttpServletRequest request) {
+        Integer userId = securityUtil.getCurrentUserId(request);
+        return ResponseEntity.ok(invitationService.getCompanyEmployees(userId, companyId));
+    }
+
+    @PatchMapping("/api/employer/companies/{companyId}/hrm-status")
+    public ResponseEntity<?> updateCompanyHrmStatus(@PathVariable Integer companyId,
+                                                    @Valid @RequestBody com.example.unipathapi.company.dto.request.CompanyHrmStatusRequest request,
+                                                    HttpServletRequest httpRequest) {
+        try {
+            Integer currentUserId = securityUtil.getCurrentUserId(httpRequest);
+            return ResponseEntity.ok(companyService.updateCompanyHrmStatus(companyId, currentUserId, request.getHrmEnabled()));
+        } catch (RuntimeException e) {
+            return handleException(e);
+        }
+    }
 
     @PostMapping("/api/companies")
     public ResponseEntity<?> createCompany(@Valid @RequestBody CompanyRequest companyRequest, HttpServletRequest request) {
@@ -36,7 +59,7 @@ public class CompanyController {
         }
     }
 
-        @PostMapping("/api/companies/propose")
+    @PostMapping("/api/companies/propose")
     public ResponseEntity<?> proposeCompany(@Valid @RequestBody com.example.unipathapi.company.dto.request.CompanyProposeRequest proposeRequest, HttpServletRequest request) {
         try {
             Integer userId = securityUtil.getCurrentUserId(request);
@@ -78,6 +101,25 @@ public class CompanyController {
         try {
             Integer currentUserId = securityUtil.getCurrentUserId(request);
             return ResponseEntity.ok(companyService.updateCompany(id, currentUserId, companyRequest));
+        } catch (RuntimeException e) {
+            return handleException(e);
+        }
+    }
+
+    @PostMapping(value = "/api/companies/{companyId}/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadCompanyLogo(
+            @PathVariable Integer companyId,
+            @RequestParam(value = "logo", required = false) MultipartFile logo,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            HttpServletRequest request) {
+        try {
+            MultipartFile uploadFile = logo != null ? logo : file;
+            if (uploadFile == null || uploadFile.isEmpty()) {
+                return ResponseEntity.badRequest().body("Vui lòng chọn ảnh logo công ty để tải lên");
+            }
+            Integer currentUserId = securityUtil.getCurrentUserId(request);
+            String currentUserRole = securityUtil.getCurrentUserRole(request);
+            return ResponseEntity.ok(companyService.uploadCompanyLogo(companyId, currentUserId, currentUserRole, uploadFile));
         } catch (RuntimeException e) {
             return handleException(e);
         }
@@ -129,10 +171,22 @@ public class CompanyController {
         }
     }
 
-    @GetMapping("/api/companies/{id}/members")
-    public ResponseEntity<?> getCompanyMembers(@PathVariable Integer id) {
+    @GetMapping("/api/companies/me")
+    public ResponseEntity<?> getMyCompanyOverview(@RequestParam(required = false) Integer companyId, HttpServletRequest request) {
         try {
-            return ResponseEntity.ok(companyService.getCompanyMembers(id));
+            Integer userId = securityUtil.getCurrentUserId(request);
+            return ResponseEntity.ok(companyService.getMyCompanyOverview(userId, companyId));
+        } catch (RuntimeException e) {
+            return handleException(e);
+        }
+    }
+
+    @GetMapping("/api/companies/{id}/members")
+    public ResponseEntity<?> getCompanyMembers(@PathVariable Integer id, HttpServletRequest request) {
+        try {
+            Integer currentUserId = securityUtil.getCurrentUserId(request);
+            String currentUserRole = securityUtil.getCurrentUserRole(request);
+            return ResponseEntity.ok(companyService.getCompanyMembers(id, currentUserId, currentUserRole));
         } catch (RuntimeException e) {
             return handleException(e);
         }
@@ -142,6 +196,9 @@ public class CompanyController {
         String msg = e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống";
         if (msg.startsWith("403:")) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(msg.substring(4).trim());
+        }
+        if (msg.startsWith("400:")) {
+            return ResponseEntity.badRequest().body(msg.substring(4).trim());
         }
         return ResponseEntity.badRequest().body(msg);
     }

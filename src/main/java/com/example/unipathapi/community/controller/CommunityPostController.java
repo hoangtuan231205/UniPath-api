@@ -88,7 +88,8 @@ public class CommunityPostController {
     public ResponseEntity<?> getPostDetail(@PathVariable Integer id, HttpServletRequest httpRequest) {
         try {
             Integer currentUserId = securityUtil.getOptionalCurrentUserId(httpRequest);
-            return ResponseEntity.ok(postService.getPostDetail(id, currentUserId));
+            String currentUserRole = securityUtil.getOptionalCurrentUserRole(httpRequest);
+            return ResponseEntity.ok(postService.getPostDetail(id, currentUserId, currentUserRole));
         } catch (RuntimeException e) {
             return ResponseEntity.status(404).body(e.getMessage());
         }

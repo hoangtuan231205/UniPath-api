@@ -16,6 +16,10 @@ public interface CompanyMemberRepository extends JpaRepository<CompanyMember, In
 
     List<CompanyMember> findByCompanyId(Integer companyId);
 
+    org.springframework.data.domain.Page<CompanyMember> findByCompanyId(Integer companyId, org.springframework.data.domain.Pageable pageable);
+
+    long countByCompanyId(Integer companyId);
+
     Optional<CompanyMember> findByCompanyIdAndUserId(Integer companyId, Integer userId);
 
     boolean existsByCompanyIdAndUserId(Integer companyId, Integer userId);

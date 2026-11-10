@@ -32,6 +32,25 @@ public class Employment {
     @Column(name = "start_date")
     private LocalDate startDate;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invitation_id")
+    private EmploymentInvitation invitation;
+
+    @Column(name = "position")
+    private String position;
+
+    @Column(name = "salary_type", length = 20)
+    private String salaryType = "HOURLY";
+
+    @Column(name = "base_salary_monthly", precision = 12, scale = 2)
+    private BigDecimal baseSalaryMonthly;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @Column(name = "termination_reason", columnDefinition = "TEXT")
+    private String terminationReason;
+
     @Column(length = 50)
     private String status = "ACTIVE";
 }

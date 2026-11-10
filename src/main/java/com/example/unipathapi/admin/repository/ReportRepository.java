@@ -14,18 +14,35 @@ import java.util.List;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Integer> {
 
-    @Query("SELECT r FROM Report r WHERE " +
-           "(:targetType IS NULL OR r.targetType = :targetType) AND " +
+    @Query("SELECT r FROM Report r " +
+           "LEFT JOIN FETCH r.reporter " +
+           "LEFT JOIN FETCH r.job " +
+           "LEFT JOIN FETCH r.post p " +
+           "LEFT JOIN FETCH p.author " +
+           "LEFT JOIN FETCH r.resolvedBy " +
+           "WHERE (:targetType IS NULL OR r.targetType = :targetType) AND " +
            "(:status IS NULL OR r.status = :status) " +
            "ORDER BY r.createdAt DESC")
     List<Report> findByOptionalFilters(@Param("targetType") String targetType,
                                        @Param("status") String status);
 
-    @Query("SELECT r FROM Report r WHERE " +
-           "(:targetType IS NULL OR r.targetType = :targetType) AND " +
-           "(:status IS NULL OR r.status = :status) " +
-           "ORDER BY r.createdAt DESC")
+    @Query(value = "SELECT r FROM Report r " +
+                   "LEFT JOIN FETCH r.reporter " +
+                   "LEFT JOIN FETCH r.job " +
+                   "LEFT JOIN FETCH r.post p " +
+                   "LEFT JOIN FETCH p.author " +
+                   "LEFT JOIN FETCH r.resolvedBy " +
+                   "WHERE (:targetType IS NULL OR r.targetType = :targetType) AND " +
+                   "(:status IS NULL OR r.status = :status) " +
+                   "ORDER BY r.createdAt DESC",
+           countQuery = "SELECT COUNT(r) FROM Report r WHERE " +
+                        "(:targetType IS NULL OR r.targetType = :targetType) AND " +
+                        "(:status IS NULL OR r.status = :status)")
     Page<Report> findByOptionalFiltersPaged(@Param("targetType") String targetType,
                                             @Param("status") String status,
                                             Pageable pageable);
+
+    boolean existsByReporterIdAndPostIdAndStatus(Integer reporterId, Integer postId, String status);
+
+    List<Report> findByPostIdAndStatus(Integer postId, String status);
 }

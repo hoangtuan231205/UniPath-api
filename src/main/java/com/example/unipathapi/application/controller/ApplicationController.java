@@ -27,6 +27,9 @@ public class ApplicationController {
     private ApplicationService applicationService;
 
     @Autowired
+    private com.example.unipathapi.company.service.EmploymentInvitationService invitationService;
+
+    @Autowired
     private SecurityUtil securityUtil;
 
     @GetMapping("/api/jobs/{id}/check-applied")
@@ -56,12 +59,20 @@ public class ApplicationController {
     @GetMapping("/api/applications/me")
     public ResponseEntity<?> getMyApplications(
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "appliedAt,desc") String sort,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest httpRequest
     ) {
         Integer candidateId = securityUtil.getCurrentUserId(httpRequest);
-        return ResponseEntity.ok(applicationService.getMyApplications(candidateId, status, page, size));
+        return ResponseEntity.ok(applicationService.getMyApplications(candidateId, status, search, sort, page, size));
+    }
+
+    @GetMapping("/api/applications/me/summary")
+    public ResponseEntity<?> getMyApplicationSummary(HttpServletRequest httpRequest) {
+        Integer candidateId = securityUtil.getCurrentUserId(httpRequest);
+        return ResponseEntity.ok(applicationService.getMyApplicationSummary(candidateId));
     }
 
     @GetMapping("/api/applications")
@@ -86,6 +97,38 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationService.updateApplicationStatus(id, employerId, request));
     }
 
+    @PostMapping("/api/employer/companies/{companyId}/applications/{applicationId}/invitations")
+    public ResponseEntity<?> sendRecruitmentInvitation(
+            @PathVariable Integer companyId,
+            @PathVariable Integer applicationId,
+            @Valid @RequestBody com.example.unipathapi.company.dto.request.RecruitmentInvitationCreateRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        Integer employerUserId = securityUtil.getCurrentUserId(httpRequest);
+        return ResponseEntity.ok(invitationService.createRecruitmentInvitationFromApplication(employerUserId, companyId, applicationId, request));
+    }
+
+    @GetMapping("/api/applications/{id}")
+    public ResponseEntity<?> getApplicationDetail(@PathVariable Integer id, HttpServletRequest httpRequest) {
+        Integer employerId = securityUtil.getCurrentUserId(httpRequest);
+        return ResponseEntity.ok(applicationService.getApplicationDetail(id, employerId));
+    }
+
+    @GetMapping("/api/applications/{id}/cv/preview")
+    public ResponseEntity<?> previewCv(@PathVariable Integer id, HttpServletRequest httpRequest) {
+        Integer currentUserId = securityUtil.getCurrentUserId(httpRequest);
+        Resource resource = applicationService.getCvPreviewResource(id, currentUserId);
+        Application app = applicationService.getApplicationById(id);
+
+        String filename = app.getCvFilename() != null ? app.getCvFilename() : "CV_" + id + ".pdf";
+        String contentType = determineContentType(filename, app.getCvFileType());
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                .body(resource);
+    }
+
     @GetMapping("/api/applications/{id}/cv/download")
     public ResponseEntity<?> downloadCv(@PathVariable Integer id, HttpServletRequest httpRequest) {
         Integer currentUserId = securityUtil.getCurrentUserId(httpRequest);
@@ -97,5 +140,30 @@ public class ApplicationController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .body(resource);
+    }
+
+    private String determineContentType(String filename, String fileType) {
+        String ext = "";
+        if (filename != null && filename.contains(".")) {
+            ext = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+        } else if (fileType != null) {
+            ext = fileType.toLowerCase();
+        }
+
+        switch (ext) {
+            case "pdf":
+                return MediaType.APPLICATION_PDF_VALUE;
+            case "doc":
+                return "application/msword";
+            case "docx":
+                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "png":
+                return MediaType.IMAGE_PNG_VALUE;
+            case "jpg":
+            case "jpeg":
+                return MediaType.IMAGE_JPEG_VALUE;
+            default:
+                return MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
     }
 }

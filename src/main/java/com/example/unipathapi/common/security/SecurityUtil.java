@@ -74,6 +74,25 @@ public class SecurityUtil {
         }
     }
 
+    public String getOptionalCurrentUserRole(HttpServletRequest request) {
+        if (request == null) return null;
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        String token = authHeader.substring(7);
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSignKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.get("role", String.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public void validateActiveUser(Integer userId) {
         if (userId == null) return;
         User user = userRepository.findById(userId).orElse(null);

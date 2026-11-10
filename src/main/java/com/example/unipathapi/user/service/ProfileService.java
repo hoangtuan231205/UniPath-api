@@ -10,9 +10,11 @@ import com.example.unipathapi.user.entity.User;
 import com.example.unipathapi.candidate.repository.CandidateProfileRepository;
 import com.example.unipathapi.employer.repository.EmployerProfileRepository;
 import com.example.unipathapi.user.repository.UserRepository;
+import com.example.unipathapi.common.storage.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ProfileService {
@@ -23,6 +25,8 @@ public class ProfileService {
     private CandidateProfileRepository candidateRepo;
     @Autowired
     private EmployerProfileRepository employerRepo;
+    @Autowired
+    private FileStorageService fileStorageService;
 
     // ----- LOGIC CHO CANDIDATE -----
     public CandidateProfileResponse getCandidateProfile(Integer userId) {
@@ -90,6 +94,32 @@ public class ProfileService {
         return getCandidateProfile(userId);
     }
 
+    @Transactional
+    public CandidateProfileResponse uploadCandidatePhoto(Integer userId, Integer currentUserId, String currentUserRole, MultipartFile file) {
+        if (!userId.equals(currentUserId) && !"ADMIN".equalsIgnoreCase(currentUserRole)) {
+            throw new RuntimeException("403: Bạn không có quyền cập nhật ảnh đại diện của người dùng khác");
+        }
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Không tìm thấy User"));
+        if (!"CANDIDATE".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Tài khoản này không phải là Ứng viên.");
+        }
+
+        CandidateProfile profile = candidateRepo.findByUserId(userId).orElse(new CandidateProfile());
+        profile.setUser(user);
+
+        String oldAvatar = profile.getAvatarUrl();
+        String newAvatarUrl = fileStorageService.storeAvatar(file, "avatars/candidate");
+        profile.setAvatarUrl(newAvatarUrl);
+        candidateRepo.save(profile);
+
+        // Xóa ảnh cũ an toàn nếu là ảnh do hệ thống lưu trữ
+        if (oldAvatar != null && oldAvatar.startsWith("/uploads/avatars/")) {
+            fileStorageService.deleteFile(oldAvatar);
+        }
+
+        return getCandidateProfile(userId);
+    }
+
     // ----- LOGIC CHO EMPLOYER -----
     public EmployerProfileResponse getEmployerProfile(Integer userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Không tìm thấy User"));
@@ -105,6 +135,7 @@ public class ProfileService {
         res.setPhone(profile.getPhone());
         res.setPosition(profile.getPosition());
         res.setBio(profile.getBio());
+        res.setAvatarUrl(profile.getAvatarUrl());
         return res;
     }
 
@@ -121,9 +152,33 @@ public class ProfileService {
         profile.setPhone(request.getPhone());
         profile.setPosition(request.getPosition());
         profile.setBio(request.getBio());
-        // Không cho phép user tự update isVerified, cái này do Admin/Trigger lo
 
         employerRepo.save(profile);
+        return getEmployerProfile(userId);
+    }
+
+    @Transactional
+    public EmployerProfileResponse uploadEmployerPhoto(Integer userId, Integer currentUserId, String currentUserRole, MultipartFile file) {
+        if (!userId.equals(currentUserId) && !"ADMIN".equalsIgnoreCase(currentUserRole)) {
+            throw new RuntimeException("403: Bạn không có quyền cập nhật ảnh đại diện của người dùng khác");
+        }
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Không tìm thấy User"));
+        if (!"EMPLOYER".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Tài khoản này không phải là Nhà tuyển dụng.");
+        }
+
+        EmployerProfile profile = employerRepo.findByUserId(userId).orElse(new EmployerProfile());
+        profile.setUser(user);
+
+        String oldAvatar = profile.getAvatarUrl();
+        String newAvatarUrl = fileStorageService.storeAvatar(file, "avatars/employer");
+        profile.setAvatarUrl(newAvatarUrl);
+        employerRepo.save(profile);
+
+        if (oldAvatar != null && oldAvatar.startsWith("/uploads/avatars/")) {
+            fileStorageService.deleteFile(oldAvatar);
+        }
+
         return getEmployerProfile(userId);
     }
 }

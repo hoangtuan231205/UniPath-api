@@ -14,9 +14,11 @@ import com.example.unipathapi.user.repository.UserRepository;
 import com.example.unipathapi.company.dto.request.CompanyJoinRequestDTO;
 import com.example.unipathapi.company.dto.request.CompanyRequest;
 import com.example.unipathapi.company.dto.request.ShiftRequest;
+import com.example.unipathapi.common.storage.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -172,6 +174,15 @@ public class CompanyManagementService {
     @Autowired
     private CompanyLocationRepository locationRepository;
 
+    @Autowired
+    private com.example.unipathapi.job.repository.JobRepository jobRepository;
+
+    @Autowired
+    private com.example.unipathapi.application.repository.ApplicationRepository applicationRepository;
+
+    @Autowired
+    private FileStorageService fileStorageService;
+
     @Transactional
     public CompanyResponse createCompany(Integer userId, CompanyRequest request) {
         User user = userRepository.findById(userId)
@@ -221,19 +232,19 @@ public class CompanyManagementService {
         Company company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy công ty"));
 
-        if ("APPROVED".equalsIgnoreCase(company.getStatus())) {
-            return buildCompanyResponse(company);
-        }
-
-        // Nếu PENDING hoặc REJECTED: chỉ cho xem nếu caller là member hoặc System ADMIN
-        boolean isMember = memberRepository.findByCompanyIdAndUserId(companyId, currentUserId).isPresent();
+        boolean isCompanyAdmin = currentUserId != null &&
+                memberRepository.existsByCompanyIdAndUserIdAndMemberRole(companyId, currentUserId, "COMPANY_ADMIN");
         boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUserRole);
 
-        if (!isMember && !isAdmin) {
-            throw new RuntimeException("403: Bạn không có quyền xem thông tin công ty chưa được phê duyệt này");
+        if (!"APPROVED".equalsIgnoreCase(company.getStatus())) {
+            // Nếu PENDING hoặc REJECTED: chỉ cho xem nếu caller là member hoặc System ADMIN
+            boolean isMember = currentUserId != null && memberRepository.findByCompanyIdAndUserId(companyId, currentUserId).isPresent();
+            if (!isMember && !isAdmin) {
+                throw new RuntimeException("403: Bạn không có quyền xem thông tin công ty chưa được phê duyệt này");
+            }
         }
 
-        return buildCompanyResponse(company);
+        return buildCompanyResponse(company, isCompanyAdmin || isAdmin);
     }
 
     @Transactional
@@ -261,6 +272,48 @@ public class CompanyManagementService {
         return buildCompanyResponse(saved);
     }
 
+    @Transactional
+    public CompanyResponse uploadCompanyLogo(Integer companyId, Integer currentUserId, String currentUserRole, MultipartFile file) {
+        boolean isCompanyAdmin = currentUserId != null &&
+                memberRepository.existsByCompanyIdAndUserIdAndMemberRole(companyId, currentUserId, "COMPANY_ADMIN");
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUserRole);
+
+        if (!isCompanyAdmin && !isAdmin) {
+            throw new RuntimeException("403: Chỉ Quản trị viên công ty (COMPANY_ADMIN) hoặc Quản trị viên hệ thống mới có quyền đổi logo công ty");
+        }
+
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy công ty"));
+
+        String oldLogo = company.getLogoUrl();
+        String newLogoUrl = fileStorageService.storeAvatar(file, "companies/" + companyId);
+        company.setLogoUrl(newLogoUrl);
+        Company saved = companyRepository.save(company);
+
+        if (oldLogo != null && oldLogo.startsWith("/uploads/companies/")) {
+            fileStorageService.deleteFile(oldLogo);
+        }
+
+        return buildCompanyResponse(saved, isCompanyAdmin || isAdmin);
+    }
+
+    @Transactional
+    public CompanyResponse updateCompanyHrmStatus(Integer companyId, Integer currentUserId, Boolean hrmEnabled) {
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new RuntimeException("400: Không tìm thấy công ty với ID: " + companyId));
+
+        boolean isCompanyAdmin = memberRepository.existsByCompanyIdAndUserIdAndMemberRole(
+                companyId, currentUserId, "COMPANY_ADMIN"
+        );
+        if (!isCompanyAdmin) {
+            throw new RuntimeException("403: Chỉ Quản trị viên công ty (COMPANY_ADMIN) mới có quyền bật hoặc tắt tính năng Quản lý nhân sự (HRM)");
+        }
+
+        company.setHrmEnabled(Boolean.TRUE.equals(hrmEnabled));
+        Company saved = companyRepository.save(company);
+        return buildCompanyResponse(saved, true);
+    }
+
     public List<UserCompanyMembershipResponse> getUserCompanies(Integer userId) {
         List<CompanyMember> memberships = memberRepository.findByUserId(userId);
         return memberships.stream().map(m -> UserCompanyMembershipResponse.builder()
@@ -273,7 +326,85 @@ public class CompanyManagementService {
                 .status(m.getCompany().getStatus())
                 .memberRole(m.getMemberRole())
                 .joinedAt(m.getJoinedAt())
+                .hrmEnabled(Boolean.TRUE.equals(m.getCompany().getHrmEnabled()))
                 .build()).collect(Collectors.toList());
+    }
+
+    public MyCompanyOverviewResponse getMyCompanyOverview(Integer userId, Integer requestedCompanyId) {
+        List<CompanyMember> memberships = memberRepository.findByUserId(userId);
+        if (memberships.isEmpty()) {
+            return MyCompanyOverviewResponse.builder()
+                    .hasCompany(false)
+                    .build();
+        }
+
+        // Quy tắc đa công ty: Có nhiều hơn 1 membership và không truyền companyId
+        if (memberships.size() > 1 && requestedCompanyId == null) {
+            List<UserCompanyMembershipResponse> available = memberships.stream()
+                    .map(m -> UserCompanyMembershipResponse.builder()
+                            .companyId(m.getCompany().getId())
+                            .companyName(m.getCompany().getCompanyName())
+                            .companyScale(m.getCompany().getCompanyScale())
+                            .description(m.getCompany().getDescription())
+                            .website(m.getCompany().getWebsite())
+                            .status(m.getCompany().getStatus())
+                            .memberRole(m.getMemberRole())
+                            .joinedAt(m.getJoinedAt())
+                            .hrmEnabled(Boolean.TRUE.equals(m.getCompany().getHrmEnabled()))
+                            .build())
+                    .collect(Collectors.toList());
+
+            return MyCompanyOverviewResponse.builder()
+                    .hasCompany(true)
+                    .requiresCompanySelection(true)
+                    .availableCompanies(available)
+                    .build();
+        }
+
+        CompanyMember targetMember;
+        if (requestedCompanyId != null) {
+            targetMember = memberRepository.findByCompanyIdAndUserId(requestedCompanyId, userId)
+                    .orElseThrow(() -> new RuntimeException("403: Bạn không phải là thành viên của công ty này"));
+        } else {
+            targetMember = memberships.get(0);
+        }
+
+        Company company = targetMember.getCompany();
+        Integer companyId = company.getId();
+        String memberRole = targetMember.getMemberRole();
+
+        long totalJobs = jobRepository.countByCompanyIdIn(java.util.Collections.singletonList(companyId));
+        long activeJobs = jobRepository.countActiveByCompanyIds(java.util.Collections.singletonList(companyId));
+        long totalApplications = applicationRepository.countByCompanyIds(java.util.Collections.singletonList(companyId));
+        long totalMembers = memberRepository.countByCompanyId(companyId);
+        long totalLocations = locationRepository.countByCompanyId(companyId);
+
+        boolean isCompanyAdmin = "COMPANY_ADMIN".equalsIgnoreCase(memberRole);
+
+        return MyCompanyOverviewResponse.builder()
+                .hasCompany(true)
+                .requiresCompanySelection(false)
+                .companyId(companyId)
+                .companyName(company.getCompanyName())
+                .companyScale(company.getCompanyScale())
+                .description(company.getDescription())
+                .website(company.getWebsite())
+                .phoneNumber(company.getPhoneNumber())
+                .logoUrl(company.getLogoUrl())
+                .status(company.getStatus())
+                .createdAt(company.getCreatedAt())
+                .currentUserMemberRole(memberRole)
+                .taxCode(isCompanyAdmin ? company.getTaxCode() : null)
+                .businessLicenseUrl(isCompanyAdmin ? company.getBusinessLicenseUrl() : null)
+                .approvedAt(isCompanyAdmin ? company.getApprovedAt() : null)
+                .approvedByEmail(isCompanyAdmin && company.getApprovedBy() != null ? company.getApprovedBy().getEmail() : null)
+                .totalJobs(totalJobs)
+                .activeJobs(activeJobs)
+                .totalApplications(totalApplications)
+                .totalMembers(totalMembers)
+                .totalLocations(totalLocations)
+                .hrmEnabled(Boolean.TRUE.equals(company.getHrmEnabled()))
+                .build();
     }
 
     // --- COMPANY JOIN REQUESTS ---
@@ -399,9 +530,40 @@ public class CompanyManagementService {
         return buildJoinRequestResponse(saved);
     }
 
-    public List<CompanyMemberResponse> getCompanyMembers(Integer companyId) {
+    public List<CompanyMemberResponse> getCompanyMembers(Integer companyId, Integer currentUserId, String currentUserRole) {
+        if (currentUserId == null) {
+            throw new RuntimeException("403: Chưa xác thực hoặc thiếu token");
+        }
+
+        CompanyMember callerMembership = memberRepository.findByCompanyIdAndUserId(companyId, currentUserId).orElse(null);
+        boolean isSystemAdmin = "ADMIN".equalsIgnoreCase(currentUserRole);
+
+        if (callerMembership == null && !isSystemAdmin) {
+            throw new RuntimeException("403: Bạn không phải thành viên của công ty này");
+        }
+
+        boolean isCompanyAdmin = isSystemAdmin || (callerMembership != null && "COMPANY_ADMIN".equalsIgnoreCase(callerMembership.getMemberRole()));
+
         List<CompanyMember> members = memberRepository.findByCompanyId(companyId);
-        return members.stream().map(this::buildCompanyMemberResponse).collect(Collectors.toList());
+        return members.stream().map(m -> {
+            String fullName = employerProfileRepository.findById(m.getUser().getId())
+                    .map(EmployerProfile::getFullName).orElse(m.getUser().getEmail());
+            String email = m.getUser().getEmail();
+            if (!isCompanyAdmin && !m.getUser().getId().equals(currentUserId)) {
+                email = maskEmail(email);
+            }
+
+            return CompanyMemberResponse.builder()
+                    .id(m.getId())
+                    .companyId(m.getCompany().getId())
+                    .companyName(m.getCompany().getCompanyName())
+                    .userId(m.getUser().getId())
+                    .fullName(fullName)
+                    .email(email)
+                    .memberRole(m.getMemberRole())
+                    .joinedAt(m.getJoinedAt())
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     // --- SHIFTS & EMPLOYEES & PAYROLL ---
@@ -462,19 +624,10 @@ public class CompanyManagementService {
     }
 
     public EmployeeResponse createEmployment(Integer employerUserId, com.example.unipathapi.company.dto.request.EmploymentRequest request) {
-        Company company = getFirstCompanyOfEmployer(employerUserId);
-        User candidate = userRepository.findById(request.getCandidateId())
-                .orElseThrow(() -> new RuntimeException("Ứng viên không tồn tại"));
-
-        Employment employment = new Employment();
-        employment.setCompany(company);
-        employment.setCandidate(candidate);
-        employment.setBaseSalaryPerHour(request.getBaseSalaryPerHour());
-        employment.setStartDate(request.getStartDate() != null ? request.getStartDate() : java.time.LocalDate.now());
-        employment.setStatus("ACTIVE");
-
-        Employment saved = employmentRepository.save(employment);
-        return buildEmployeeResponse(saved);
+        throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.BAD_REQUEST,
+                "Không thể tạo nhân viên trực tiếp ở trạng thái ACTIVE. Vui lòng sử dụng luồng gửi lời mời nhân sự (POST /api/employer/companies/{companyId}/invitations) và đợi ứng viên xác nhận đồng ý."
+        );
     }
 
     public List<EmployeeResponse> getEmployees(Integer employerUserId) {
@@ -499,23 +652,40 @@ public class CompanyManagementService {
         return members.get(0).getCompany();
     }
 
+    public static String maskEmail(String email) {
+        if (email == null || !email.contains("@")) return "***";
+        int atIdx = email.indexOf('@');
+        String name = email.substring(0, atIdx);
+        String domain = email.substring(atIdx);
+        if (name.length() <= 1) {
+            return name + "***" + domain;
+        }
+        return name.charAt(0) + "***" + name.charAt(name.length() - 1) + domain;
+    }
+
     public CompanyResponse buildCompanyResponse(Company comp) {
+        return buildCompanyResponse(comp, false);
+    }
+
+    public CompanyResponse buildCompanyResponse(Company comp, boolean includeSensitive) {
         return CompanyResponse.builder()
                 .id(comp.getId())
                 .companyName(comp.getCompanyName())
-                .taxCode(comp.getTaxCode())
-                .phoneNumber(comp.getPhoneNumber())
-                .businessLicenseUrl(comp.getBusinessLicenseUrl())
                 .companyScale(comp.getCompanyScale())
                 .description(comp.getDescription())
                 .website(comp.getWebsite())
+                .phoneNumber(comp.getPhoneNumber())
+                .logoUrl(comp.getLogoUrl())
                 .status(comp.getStatus())
-                .createdById(comp.getCreatedBy() != null ? comp.getCreatedBy().getId() : null)
-                .createdByEmail(comp.getCreatedBy() != null ? comp.getCreatedBy().getEmail() : null)
-                .approvedById(comp.getApprovedBy() != null ? comp.getApprovedBy().getId() : null)
-                .approvedByEmail(comp.getApprovedBy() != null ? comp.getApprovedBy().getEmail() : null)
-                .approvedAt(comp.getApprovedAt())
                 .createdAt(comp.getCreatedAt())
+                .taxCode(includeSensitive ? comp.getTaxCode() : null)
+                .businessLicenseUrl(includeSensitive ? comp.getBusinessLicenseUrl() : null)
+                .createdById(includeSensitive && comp.getCreatedBy() != null ? comp.getCreatedBy().getId() : null)
+                .createdByEmail(includeSensitive && comp.getCreatedBy() != null ? comp.getCreatedBy().getEmail() : null)
+                .approvedById(includeSensitive && comp.getApprovedBy() != null ? comp.getApprovedBy().getId() : null)
+                .approvedByEmail(includeSensitive && comp.getApprovedBy() != null ? comp.getApprovedBy().getEmail() : null)
+                .approvedAt(includeSensitive ? comp.getApprovedAt() : null)
+                .hrmEnabled(Boolean.TRUE.equals(comp.getHrmEnabled()))
                 .build();
     }
 
@@ -584,6 +754,12 @@ public class CompanyManagementService {
                 .universityName(candidate != null ? candidate.getUniversityName() : null)
                 .major(candidate != null ? candidate.getMajor() : null)
                 .baseSalaryPerHour(emp.getBaseSalaryPerHour())
+                .baseSalaryMonthly(emp.getBaseSalaryMonthly())
+                .salaryType(emp.getSalaryType())
+                .position(emp.getPosition())
+                .invitationId(emp.getInvitation() != null ? emp.getInvitation().getId() : null)
+                .companyId(emp.getCompany() != null ? emp.getCompany().getId() : null)
+                .companyName(emp.getCompany() != null ? emp.getCompany().getCompanyName() : null)
                 .startDate(emp.getStartDate())
                 .status(emp.getStatus())
                 .build();

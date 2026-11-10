@@ -19,4 +19,5 @@ public class UserCompanyMembershipResponse {
     private String status;
     private String memberRole; // 'COMPANY_ADMIN', 'RECRUITER'
     private LocalDateTime joinedAt;
+    private Boolean hrmEnabled;
 }

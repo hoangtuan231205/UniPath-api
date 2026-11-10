@@ -59,4 +59,7 @@ public class Company {
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "hrm_enabled", nullable = false)
+    private Boolean hrmEnabled = false;
 }

@@ -75,4 +75,30 @@ public class CompanyLocationController {
         List<NearbyCompanyResponse> responses = companyLocationService.getNearbyCompanies(finalLat, finalLon, finalRadiusKm);
         return ResponseEntity.ok(responses);
     }
+
+    /**
+     * Lấy danh sách địa điểm nội bộ của công ty.
+     * Yêu cầu xác thực thành viên công ty hoặc ADMIN.
+     */
+    @GetMapping("/{id}/locations")
+    public ResponseEntity<?> getCompanyLocations(@PathVariable Integer id, HttpServletRequest httpRequest) {
+        try {
+            Integer userId = securityUtil.getCurrentUserId(httpRequest);
+            String role = securityUtil.getCurrentUserRole(httpRequest);
+            return ResponseEntity.ok(companyLocationService.getCompanyLocations(id, userId, role));
+        } catch (RuntimeException e) {
+            return handleException(e);
+        }
+    }
+
+    private ResponseEntity<?> handleException(RuntimeException e) {
+        String msg = e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống";
+        if (msg.startsWith("403:")) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).body(msg.substring(4).trim());
+        }
+        if (msg.startsWith("400:")) {
+            return ResponseEntity.badRequest().body(msg.substring(4).trim());
+        }
+        return ResponseEntity.badRequest().body(msg);
+    }
 }

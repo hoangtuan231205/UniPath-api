@@ -10,4 +10,5 @@ public class EmployerProfileResponse {
     private String phone;
     private String position;
     private String bio;
+    private String avatarUrl;
 }

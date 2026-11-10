@@ -9,6 +9,8 @@ import com.example.unipathapi.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -32,6 +34,10 @@ public class Application {
 
     @Column(name = "cv_profile_id")
     private Integer cvProfileId;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "cv_snapshot_json", columnDefinition = "jsonb")
+    private String cvSnapshotJson;
 
     @Column(name = "cv_url", columnDefinition = "TEXT")
     private String cvUrl;

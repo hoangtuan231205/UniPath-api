@@ -15,4 +15,6 @@ public class CvProfileRequest {
 
     @NotBlank(message = "Nội dung JSON của CV không được để trống")
     private String contentJson;
+
+    private Boolean isPrimary;
 }

@@ -84,6 +84,11 @@ public class InteractionService {
     public void likePost(Integer postId, Integer userId) {
         CommunityPost post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
+
+        if (Boolean.FALSE.equals(post.getIsActive())) {
+            throw new RuntimeException("Bài viết đã bị khóa vi phạm, không thể thích");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
@@ -149,6 +154,11 @@ public class InteractionService {
     public CommentResponse createPostComment(Integer postId, Integer userId, CommentRequest request) {
         CommunityPost post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
+
+        if (Boolean.FALSE.equals(post.getIsActive())) {
+            throw new RuntimeException("Bài viết đã bị khóa vi phạm, không thể bình luận");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 

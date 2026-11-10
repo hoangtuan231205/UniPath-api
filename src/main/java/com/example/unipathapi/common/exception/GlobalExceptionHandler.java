@@ -24,6 +24,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<Object> handleResponseStatusException(org.springframework.web.server.ResponseStatusException ex) {
+        org.springframework.http.HttpStatusCode statusCode = ex.getStatusCode();
+        HttpStatus status = HttpStatus.resolve(statusCode.value());
+        if (status == null) status = HttpStatus.BAD_REQUEST;
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
+        body.put("message", ex.getReason() != null ? ex.getReason() : ex.getMessage());
+
+        return new ResponseEntity<>(body, status);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Object> handleRuntimeException(RuntimeException ex) {
         String msg = ex.getMessage() != null ? ex.getMessage() : "Lỗi xử lý yêu cầu";
@@ -63,6 +78,26 @@ public class GlobalExceptionHandler {
         body.put("message", "Vui lòng kiểm tra lại các trường thông tin");
         body.put("errors", fieldErrors);
 
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<Object> handleHttpMessageNotReadable(org.springframework.http.converter.HttpMessageNotReadableException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Bad Request");
+        String message = "Dữ liệu gửi lên không đúng định dạng hoặc giá trị không hợp lệ";
+        Throwable root = ex.getRootCause();
+        if (root != null && root.getMessage() != null) {
+            String rootMsg = root.getMessage();
+            if (rootMsg.contains("JobType")) {
+                message = "Giá trị loại hình công việc (jobType) không hợp lệ. Các giá trị được chấp nhận: FULL_TIME, PART_TIME, INTERNSHIP, CONTRACT";
+            } else if (rootMsg.contains("WorkMode")) {
+                message = "Giá trị hình thức làm việc (workMode) không hợp lệ. Các giá trị được chấp nhận: ONSITE, REMOTE, HYBRID";
+            }
+        }
+        body.put("message", message);
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 

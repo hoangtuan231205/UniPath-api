@@ -13,4 +13,7 @@ public interface SavedJobRepository extends JpaRepository<SavedJob, SavedJobId> 
     List<SavedJob> findByCandidateIdOrderBySavedAtDesc(Integer candidateId);
     boolean existsByCandidateIdAndJobId(Integer candidateId, Integer jobId);
     void deleteByCandidateIdAndJobId(Integer candidateId, Integer jobId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT s.job.id FROM SavedJob s WHERE s.candidate.id = :candidateId AND s.job.id IN :jobIds")
+    java.util.Set<Integer> findSavedJobIdsByCandidateIdAndJobIds(@org.springframework.data.repository.query.Param("candidateId") Integer candidateId, @org.springframework.data.repository.query.Param("jobIds") java.util.Collection<Integer> jobIds);
 }

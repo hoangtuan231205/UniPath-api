@@ -132,4 +132,31 @@ public class CompanyLocationService {
                         .build())
                 .collect(Collectors.toList());
     }
+
+    public List<CompanyLocationResponse> getCompanyLocations(Integer companyId, Integer currentUserId, String currentUserRole) {
+        if (currentUserId == null) {
+            throw new RuntimeException("403: Chưa xác thực hoặc thiếu token");
+        }
+
+        boolean isMember = memberRepository.findByCompanyIdAndUserId(companyId, currentUserId).isPresent();
+        boolean isSystemAdmin = "ADMIN".equalsIgnoreCase(currentUserRole);
+
+        if (!isMember && !isSystemAdmin) {
+            throw new RuntimeException("403: Bạn không phải thành viên của công ty này");
+        }
+
+        List<CompanyLocation> locations = locationRepository.findByCompanyId(companyId);
+        return locations.stream().map(loc -> CompanyLocationResponse.builder()
+                .id(loc.getId())
+                .companyId(loc.getCompany().getId())
+                .locationName(loc.getLocationName())
+                .address(loc.getAddress())
+                .googlePlaceId(loc.getGooglePlaceId())
+                .primary(loc.isPrimary())
+                .latitude(loc.getGeom() != null ? loc.getGeom().getY() : null)
+                .longitude(loc.getGeom() != null ? loc.getGeom().getX() : null)
+                .createdAt(loc.getCreatedAt())
+                .updatedAt(loc.getUpdatedAt())
+                .build()).collect(Collectors.toList());
+    }
 }

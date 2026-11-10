@@ -16,4 +16,11 @@ public class UpdateApplicationStatusRequest {
     private LocalDateTime interviewAt;
     private String interviewLocation;
     private String note;
+
+    private String salaryType;
+    private java.math.BigDecimal baseSalaryPerHour;
+    private java.math.BigDecimal baseSalaryMonthly;
+    private String salaryNote;
+    private java.time.LocalDate startDate;
+    private String position;
 }

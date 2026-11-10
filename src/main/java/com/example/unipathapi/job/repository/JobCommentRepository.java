@@ -21,4 +21,7 @@ public interface JobCommentRepository extends JpaRepository<JobComment, Integer>
                                          Pageable pageable);
 
     long countByJobId(Integer jobId);
+
+    @Query("SELECT c.job.id, COUNT(c) FROM JobComment c WHERE c.job.id IN :jobIds GROUP BY c.job.id")
+    List<Object[]> countCommentsByJobIds(@Param("jobIds") java.util.Collection<Integer> jobIds);
 }

@@ -19,6 +19,12 @@ public class EmployeeResponse {
     private String universityName;
     private String major;
     private BigDecimal baseSalaryPerHour;
+    private BigDecimal baseSalaryMonthly;
+    private String salaryType;
+    private String position;
+    private Integer invitationId;
+    private Integer companyId;
+    private String companyName;
     private LocalDate startDate;
     private String status;
 }

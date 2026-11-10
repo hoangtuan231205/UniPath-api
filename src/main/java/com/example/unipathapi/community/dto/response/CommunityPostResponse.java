@@ -23,5 +23,6 @@ public class CommunityPostResponse {
     private long commentsCount;
     private Boolean isLiked;
     private String type; // Always "POST"
+    private Boolean isActive;
     private List<PostMediaResponse> media;
 }

@@ -12,9 +12,11 @@ import java.time.LocalDateTime;
 public class CvProfileResponse {
     private Integer id;
     private Integer userId;
+    private String fullName;
     private Integer templateId;
     private String templateName;
     private String title;
+    private String summary;
     private String contentJson;
     private Boolean isPrimary;
     private LocalDateTime createdAt;

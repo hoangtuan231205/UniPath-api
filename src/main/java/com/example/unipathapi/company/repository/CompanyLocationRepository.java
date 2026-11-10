@@ -14,6 +14,10 @@ import java.util.List;
 @Repository
 public interface CompanyLocationRepository extends JpaRepository<CompanyLocation, Integer> {
 
+    List<CompanyLocation> findByCompanyId(Integer companyId);
+
+    long countByCompanyId(Integer companyId);
+
     @Query(value = "SELECT " +
             "c.id AS \"companyId\", " +
             "cl.id AS \"locationId\", " +

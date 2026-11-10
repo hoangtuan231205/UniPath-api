@@ -14,5 +14,6 @@ public class CandidateSearchResponse {
     private String major;
     private Integer experienceYears;
     private String phoneNumber;
+    private String email;
     private String skills;
 }

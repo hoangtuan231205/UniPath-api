@@ -1,5 +1,6 @@
 package com.example.unipathapi.company.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CompanyResponse {
     private Integer id;
     private String companyName;
@@ -18,6 +20,7 @@ public class CompanyResponse {
     private String companyScale;
     private String description;
     private String website;
+    private String logoUrl;
     private String status;
     private Integer createdById;
     private String createdByEmail;
@@ -31,4 +34,5 @@ public class CompanyResponse {
     private String companyAdminEmail;
     private String companyAdminFullName;
     private Integer totalMembers;
+    private Boolean hrmEnabled;
 }

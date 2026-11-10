@@ -4,6 +4,8 @@ import com.example.unipathapi.company.repository.*;
 import com.example.unipathapi.company.dto.request.*;
 import com.example.unipathapi.company.dto.response.*;
 import com.example.unipathapi.company.service.*;
+import com.example.unipathapi.job.enums.JobType;
+import com.example.unipathapi.job.enums.WorkMode;
 import com.example.unipathapi.user.entity.User;
 
 import jakarta.persistence.*;
@@ -43,8 +45,13 @@ public class Job {
     @Column(nullable = false, length = 255)
     private String title;
 
-    @Column(name = "job_type", length = 50)
-    private String jobType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "job_type", length = 50, nullable = false)
+    private JobType jobType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "work_mode", length = 50, nullable = false)
+    private WorkMode workMode;
 
     @Column(name = "salary_range", length = 100)
     private String salaryRange;

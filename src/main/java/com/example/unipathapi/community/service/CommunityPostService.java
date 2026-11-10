@@ -82,12 +82,23 @@ public class CommunityPostService {
     }
 
     public CommunityPostResponse getPostDetail(Integer id) {
-        return getPostDetail(id, null);
+        return getPostDetail(id, null, null);
     }
 
     public CommunityPostResponse getPostDetail(Integer id, Integer currentUserId) {
+        return getPostDetail(id, currentUserId, null);
+    }
+
+    public CommunityPostResponse getPostDetail(Integer id, Integer currentUserId, String currentUserRole) {
         CommunityPost post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết cộng đồng"));
+
+        if (Boolean.FALSE.equals(post.getIsActive())) {
+            if (currentUserRole == null || !"ADMIN".equalsIgnoreCase(currentUserRole.trim())) {
+                throw new RuntimeException("Bài viết này đã bị khóa do vi phạm quy chuẩn cộng đồng");
+            }
+        }
+
         boolean isLiked = false;
         if (currentUserId != null) {
             isLiked = postLikeRepository.existsByPostIdAndUserId(id, currentUserId);
@@ -98,6 +109,10 @@ public class CommunityPostService {
     public CommunityPostResponse updatePost(Integer id, Integer userId, CommunityPostRequest request) {
         CommunityPost post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết cộng đồng"));
+
+        if (Boolean.FALSE.equals(post.getIsActive())) {
+            throw new RuntimeException("Bài viết đã bị khóa vi phạm, không thể chỉnh sửa");
+        }
 
         if (!post.getAuthor().getId().equals(userId)) {
             throw new RuntimeException("Bạn không phải tác giả của bài viết này");
@@ -249,6 +264,7 @@ public class CommunityPostService {
                 .commentsCount(commentsCount)
                 .isLiked(isLiked != null ? isLiked : false)
                 .type("POST")
+                .isActive(post.getIsActive())
                 .media(mediaResponses)
                 .build();
     }
@@ -257,6 +273,10 @@ public class CommunityPostService {
     public List<PostMediaResponse> uploadPostMedia(Integer postId, Integer userId, List<MultipartFile> files) {
         CommunityPost post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết cộng đồng"));
+
+        if (Boolean.FALSE.equals(post.getIsActive())) {
+            throw new RuntimeException("Bài viết đã bị khóa vi phạm, không thể thêm tệp đính kèm");
+        }
 
         if (!post.getAuthor().getId().equals(userId)) {
             throw new RuntimeException("Bạn không phải tác giả của bài viết này");
