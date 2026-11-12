@@ -166,7 +166,7 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Email hoặc mật khẩu không đúng!"));
 
-        if (!user.getPassword().equals(request.getPassword())) {
+        if (user.getPassword() == null || !user.getPassword().equals(request.getPassword())) {
             throw new RuntimeException("Email hoặc mật khẩu không đúng!");
         }
 
@@ -183,7 +183,7 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        if (!user.getPassword().equals(request.getOldPassword())) {
+        if (user.getPassword() == null || !user.getPassword().equals(request.getOldPassword())) {
             throw new RuntimeException("Mật khẩu cũ không chính xác!");
         }
 

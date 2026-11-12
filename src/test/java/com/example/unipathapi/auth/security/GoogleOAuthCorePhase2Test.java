@@ -1,4 +1,4 @@
-package com.example.unipathapi.auth;
+package com.example.unipathapi.auth.security;
 
 import com.example.unipathapi.auth.dto.GoogleTokenPayload;
 import com.example.unipathapi.auth.exception.GoogleAuthException;

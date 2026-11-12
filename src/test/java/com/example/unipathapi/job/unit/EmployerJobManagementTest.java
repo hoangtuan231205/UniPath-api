@@ -1,4 +1,4 @@
-package com.example.unipathapi.job;
+package com.example.unipathapi.job.unit;
 
 import com.example.unipathapi.application.entity.Application;
 import com.example.unipathapi.application.repository.ApplicationRepository;

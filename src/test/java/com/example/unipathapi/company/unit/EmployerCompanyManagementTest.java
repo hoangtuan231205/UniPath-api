@@ -1,4 +1,4 @@
-package com.example.unipathapi.company;
+package com.example.unipathapi.company.unit;
 
 import com.example.unipathapi.application.repository.ApplicationRepository;
 import com.example.unipathapi.common.security.SecurityUtil;

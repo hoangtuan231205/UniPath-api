@@ -1,4 +1,4 @@
-package com.example.unipathapi.auth;
+package com.example.unipathapi.auth.unit;
 
 import com.example.unipathapi.auth.entity.GoogleAccountLinkSession;
 import com.example.unipathapi.auth.entity.GoogleOnboardingSession;

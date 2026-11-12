@@ -1,4 +1,4 @@
-package com.example.unipathapi.company;
+package com.example.unipathapi.company.integration;
 
 import com.example.unipathapi.company.entity.Company;
 import com.example.unipathapi.company.entity.EmploymentInvitation;

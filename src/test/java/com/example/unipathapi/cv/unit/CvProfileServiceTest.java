@@ -1,4 +1,4 @@
-package com.example.unipathapi.cv;
+package com.example.unipathapi.cv.unit;
 
 import com.example.unipathapi.application.repository.ApplicationRepository;
 import com.example.unipathapi.candidate.entity.CandidateProfile;

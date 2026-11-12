@@ -1,4 +1,4 @@
-package com.example.unipathapi.company;
+package com.example.unipathapi.company.unit;
 
 import com.example.unipathapi.application.entity.Application;
 import com.example.unipathapi.company.dto.request.EmploymentInvitationCreateRequest;

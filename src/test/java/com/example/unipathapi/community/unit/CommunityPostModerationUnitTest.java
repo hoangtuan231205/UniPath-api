@@ -1,4 +1,4 @@
-package com.example.unipathapi.community;
+package com.example.unipathapi.community.unit;
 
 import com.example.unipathapi.admin.dto.request.ReportRequest;
 import com.example.unipathapi.admin.dto.request.ReportResolveRequest;

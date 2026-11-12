@@ -70,7 +70,7 @@ public class GoogleTokenVerifierService {
             @Value("${google.token-uri:https://oauth2.googleapis.com/token}") String tokenUri,
             @Value("${google.redirect-uri:postmessage}") String redirectUri,
             GoogleJwksKeyProvider jwksKeyProvider,
-            ObjectMapper objectMapper) {
+            @Autowired(required = false) ObjectMapper objectMapper) {
         this.expectedClientId = expectedClientId;
         this.clientSecret = clientSecret;
         this.tokenUri = tokenUri;
@@ -80,7 +80,7 @@ public class GoogleTokenVerifierService {
         requestFactory.setConnectTimeout(Duration.ofSeconds(5));
         requestFactory.setReadTimeout(Duration.ofSeconds(5));
         this.restTemplate = new RestTemplate(requestFactory);
-        this.objectMapper = objectMapper;
+        this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
     }
 
     // Secondary constructor for unit testing with custom mocks

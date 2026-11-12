@@ -1,4 +1,4 @@
-package com.example.unipathapi.company;
+package com.example.unipathapi.company.unit;
 
 import com.example.unipathapi.common.exception.GlobalExceptionHandler;
 import com.example.unipathapi.company.controller.CompanyLocationController;

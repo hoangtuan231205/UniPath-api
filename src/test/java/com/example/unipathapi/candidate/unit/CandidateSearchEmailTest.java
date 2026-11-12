@@ -1,4 +1,4 @@
-package com.example.unipathapi.candidate;
+package com.example.unipathapi.candidate.unit;
 
 import com.example.unipathapi.candidate.controller.CandidateSearchController;
 import com.example.unipathapi.candidate.dto.response.CandidateSearchResponse;

@@ -1,4 +1,4 @@
-package com.example.unipathapi.company;
+package com.example.unipathapi.company.security;
 
 import com.example.unipathapi.candidate.controller.CandidateSearchController;
 import com.example.unipathapi.candidate.dto.response.CandidateSearchResponse;

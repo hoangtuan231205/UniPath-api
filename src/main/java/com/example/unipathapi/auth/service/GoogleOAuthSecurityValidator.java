@@ -3,6 +3,7 @@ package com.example.unipathapi.auth.service;
 import com.example.unipathapi.auth.exception.GoogleAuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +32,7 @@ public class GoogleOAuthSecurityValidator {
 
     private final Set<String> allowedOrigins;
 
+    @Autowired
     public GoogleOAuthSecurityValidator(
             @Value("${google.allowed-origins:http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000}") String allowedOriginsConfig) {
         if (allowedOriginsConfig != null && !allowedOriginsConfig.isBlank()) {

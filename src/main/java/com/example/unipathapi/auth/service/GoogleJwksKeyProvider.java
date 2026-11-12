@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -52,15 +53,16 @@ public class GoogleJwksKeyProvider {
     private final Map<String, PublicKey> keyCache = new ConcurrentHashMap<>();
     private final AtomicReference<Instant> lastFetchTime = new AtomicReference<>(Instant.EPOCH);
 
+    @Autowired
     public GoogleJwksKeyProvider(
             @Value("${google.jwks-uri:https://www.googleapis.com/oauth2/v3/certs}") String jwksUri,
-            ObjectMapper objectMapper) {
+            @Autowired(required = false) ObjectMapper objectMapper) {
         this.jwksUri = jwksUri;
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(Duration.ofSeconds(5));
         requestFactory.setReadTimeout(Duration.ofSeconds(5));
         this.restTemplate = new RestTemplate(requestFactory);
-        this.objectMapper = objectMapper;
+        this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
     }
 
     // Secondary constructor for testing / manual wiring

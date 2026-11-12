@@ -1,4 +1,4 @@
-package com.example.unipathapi.application;
+package com.example.unipathapi.application.unit;
 
 import com.example.unipathapi.application.dto.response.ApplicationDetailResponse;
 import com.example.unipathapi.application.dto.response.ApplicationResponse;
