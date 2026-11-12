@@ -20,6 +20,10 @@ public interface GoogleOnboardingSessionRepository extends JpaRepository<GoogleO
     int consumeSession(@Param("tokenHash") String tokenHash, @Param("now") LocalDateTime now);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE GoogleOnboardingSession s SET s.isUsed = true WHERE s.googleSub = :googleSub AND s.isUsed = false")
+    int invalidateUnusedSessionsByGoogleSub(@Param("googleSub") String googleSub);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM GoogleOnboardingSession s WHERE s.expiresAt < :now")
     int deleteExpiredSessions(@Param("now") LocalDateTime now);
 }

@@ -12,6 +12,12 @@ import com.example.unipathapi.auth.service.SecureTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import com.example.unipathapi.auth.dto.request.CandidateRegisterRequest;
+import com.example.unipathapi.auth.dto.request.EmployerRegisterRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +31,12 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.time.Duration;
 import java.util.Date;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
@@ -602,5 +614,207 @@ public class GoogleOAuthCorePhase2Test {
         );
         assertFalse(ex.getMessage().contains("SUPER_SENSITIVE_123"), "Exception message must NOT contain raw response body");
         assertEquals("Google authorization code is invalid or has expired", ex.getMessage());
+    }
+
+    // 28. Kiểm thử hồi quy: Đăng ký Candidate hỗ trợ đa dạng tên miền (Gmail, Outlook, School edu.vn)
+    @Test
+    public void testCandidateRegister_EmailMultiDomain_Valid() {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+
+        String[] validEmails = {
+                "alex.student@gmail.com",
+                "candidate@outlook.com",
+                "student2026@hcmut.edu.vn",
+                "nguyenvana@fpt.edu.vn",
+                "test.user@company.com"
+        };
+
+        for (String email : validEmails) {
+            CandidateRegisterRequest req = new CandidateRegisterRequest();
+            req.setEmail(email);
+            req.setPassword("Password123@");
+            req.setFullName("Nguyen Van A");
+
+            Set<ConstraintViolation<CandidateRegisterRequest>> violations = validator.validate(req);
+            assertTrue(violations.isEmpty(), "Email hợp lệ phải pass validation: " + email);
+        }
+    }
+
+    // 29. Kiểm thử hồi quy: Đăng ký Candidate từ chối email sai định dạng
+    @Test
+    public void testCandidateRegister_InvalidEmail_Rejected() {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+
+        String[] invalidEmails = {
+                "plainaddress",
+                "@missingusername.com",
+                "missingdomain@.com",
+                "two@@at.com",
+                "spaces in@email.com"
+        };
+
+        for (String email : invalidEmails) {
+            CandidateRegisterRequest req = new CandidateRegisterRequest();
+            req.setEmail(email);
+            req.setPassword("Password123@");
+            req.setFullName("Nguyen Van A");
+
+            Set<ConstraintViolation<CandidateRegisterRequest>> violations = validator.validate(req);
+            assertFalse(violations.isEmpty(), "Email sai định dạng phải bị từ chối: " + email);
+            assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("email")));
+        }
+    }
+
+    // 30. Kiểm thử hồi quy: Đăng ký Employer hỗ trợ đa dạng tên miền (Gmail, Outlook, Doanh nghiệp)
+    @Test
+    public void testEmployerRegister_EmailMultiDomain_Valid() {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+
+        String[] validEmails = {
+                "hr.recruiter@gmail.com",
+                "recruiter@outlook.com",
+                "talent@techcorp.vn",
+                "hr@enterprise.com.vn",
+                "careers@startup.io"
+        };
+
+        for (String email : validEmails) {
+            EmployerRegisterRequest req = new EmployerRegisterRequest();
+            req.setEmail(email);
+            req.setPassword("Password123@");
+            req.setFullName("Tran Thi HR");
+            req.setCompanyId(1);
+
+            Set<ConstraintViolation<EmployerRegisterRequest>> violations = validator.validate(req);
+            assertTrue(violations.isEmpty(), "Email doanh nghiệp hợp lệ phải pass validation: " + email);
+        }
+    }
+
+    // 31. Kiểm thử hồi quy: Đăng ký Employer từ chối email sai định dạng
+    @Test
+    public void testEmployerRegister_InvalidEmail_Rejected() {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+
+        String[] invalidEmails = {
+                "invalid-emp-email",
+                "@no-user.org",
+                "spaces in@domain.com",
+                "two@@at.com",
+                "trailing-dot@domain."
+        };
+
+        for (String email : invalidEmails) {
+            EmployerRegisterRequest req = new EmployerRegisterRequest();
+            req.setEmail(email);
+            req.setPassword("Password123@");
+            req.setFullName("Tran Thi HR");
+            req.setCompanyId(1);
+
+            Set<ConstraintViolation<EmployerRegisterRequest>> violations = validator.validate(req);
+            assertFalse(violations.isEmpty(), "Email doanh nghiệp sai định dạng phải bị từ chối: " + email);
+        }
+    }
+
+    // 32. Kiểm thử hồi quy: Stale Key trong vòng 24 giờ được sử dụng an toàn khi Google JWKS tạm thời gián đoạn
+    @Test
+    public void testStaleKeyWithin24Hours_UsesStaleKeyWhenGoogleDown() throws Exception {
+        jwksKeyProvider.registerKey("kid-recent", keyPair1.getPublic());
+
+        // Set lastFetchTime to 2 hours ago (expired cache > 1h, but within 24h stale tolerance)
+        java.lang.reflect.Field field = GoogleJwksKeyProvider.class.getDeclaredField("lastFetchTime");
+        field.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        java.util.concurrent.atomic.AtomicReference<java.time.Instant> ref =
+                (java.util.concurrent.atomic.AtomicReference<java.time.Instant>) field.get(jwksKeyProvider);
+        ref.set(java.time.Instant.now().minus(java.time.Duration.ofHours(2)));
+
+        // Google endpoint fails with 500
+        mockServer.expect(requestTo(JWKS_URI))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withServerError());
+
+        Date exp = new Date(System.currentTimeMillis() + 3600000);
+        String token = buildJwt(keyPair1, "kid-recent", "https://accounts.google.com", CLIENT_ID,
+                exp, "google-sub-recent", "user@gmail.com", true, "Recent User", null);
+
+        // Verification must succeed with stale key and full signature verification
+        GoogleTokenPayload payload = tokenVerifierService.verifyIdToken(token);
+        assertNotNull(payload);
+        assertEquals("google-sub-recent", payload.getSub());
+        assertEquals("user@gmail.com", payload.getEmail());
+    }
+
+    // 33. Kiểm thử hồi quy: JWKS refresh đồng thời an toàn đa luồng (Thread-safe & No DoS)
+    @Test
+    public void testJwksRefresh_ConcurrentAccess_ThreadSafe() throws Exception {
+        int threadCount = 10;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch readyLatch = new CountDownLatch(threadCount);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch finishLatch = new CountDownLatch(threadCount);
+        AtomicInteger successCount = new AtomicInteger(0);
+
+        for (int i = 0; i < threadCount; i++) {
+            executor.submit(() -> {
+                readyLatch.countDown();
+                try {
+                    startLatch.await();
+                    // Concurrent calls to getPublicKey
+                    var key = jwksKeyProvider.getPublicKey("kid-1");
+                    if (key != null) {
+                        successCount.incrementAndGet();
+                    }
+                } catch (Exception ignored) {
+                } finally {
+                    finishLatch.countDown();
+                }
+            });
+        }
+
+        readyLatch.await(5, TimeUnit.SECONDS);
+        startLatch.countDown(); // Release all threads at the exact same instant
+        assertTrue(finishLatch.await(5, TimeUnit.SECONDS));
+        executor.shutdown();
+
+        assertEquals(threadCount, successCount.get(), "Mọi luồng đồng thời đều phải lấy được public key an toàn");
+    }
+
+    // 34. Kiểm thử hồi quy: Frontend gửi đúng header GIS Popup CSRF được chấp nhận
+    @Test
+    public void testSecurityValidator_FrontendCsrfHeaders_Accepted() {
+        // Standard Frontend local origins
+        assertDoesNotThrow(() ->
+                securityValidator.validatePopupHeaders("http://localhost:5500", "XmlHttpRequest")
+        );
+        assertDoesNotThrow(() ->
+                securityValidator.validatePopupHeaders("http://127.0.0.1:5500", "XmlHttpRequest")
+        );
+        // Case-insensitivity on XMLHttpRequest
+        assertDoesNotThrow(() ->
+                securityValidator.validatePopupHeaders("http://localhost:5500", "XMLHttpRequest")
+        );
+    }
+
+    // 35. Kiểm thử hồi quy: Backend từ chối nhiều dạng Origin không nằm trong whitelist
+    @Test
+    public void testSecurityValidator_MultipleUnauthorizedOrigins_Rejected() {
+        String[] unauthorizedOrigins = {
+                "http://evil-hacker.com",
+                "http://phishing-unipath.com",
+                "https://accounts.google.com",
+                "http://localhost:8080", // Backend port, not in allowed frontend origins
+                "null"
+        };
+
+        for (String origin : unauthorizedOrigins) {
+            GoogleAuthException ex = assertThrows(GoogleAuthException.class, () ->
+                    securityValidator.validatePopupHeaders(origin, "XmlHttpRequest")
+            );
+            assertTrue(ex.getMessage().contains("Unauthorized request Origin") || ex.getMessage().contains("Missing Origin header"));
+        }
     }
 }

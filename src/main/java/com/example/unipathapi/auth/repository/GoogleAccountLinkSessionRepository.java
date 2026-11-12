@@ -20,6 +20,10 @@ public interface GoogleAccountLinkSessionRepository extends JpaRepository<Google
     int consumeSession(@Param("linkTokenHash") String linkTokenHash, @Param("now") LocalDateTime now);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE GoogleAccountLinkSession s SET s.isUsed = true WHERE s.googleSub = :googleSub AND s.isUsed = false")
+    int invalidateUnusedSessionsByGoogleSub(@Param("googleSub") String googleSub);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM GoogleAccountLinkSession s WHERE s.expiresAt < :now")
     int deleteExpiredSessions(@Param("now") LocalDateTime now);
 }
