@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 @RestController
 @RequestMapping("/api/candidates")
-@CrossOrigin(origins = "*")
 public class CandidateSearchController {
 
     @Autowired

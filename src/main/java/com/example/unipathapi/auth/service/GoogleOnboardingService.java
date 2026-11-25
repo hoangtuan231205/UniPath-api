@@ -3,6 +3,7 @@ package com.example.unipathapi.auth.service;
 import com.example.unipathapi.auth.dto.request.GoogleCandidateOnboardingRequest;
 import com.example.unipathapi.auth.dto.request.GoogleEmployerOnboardingRequest;
 import com.example.unipathapi.auth.dto.response.AuthResponse;
+import com.example.unipathapi.auth.dto.response.GoogleOnboardingContextResponse;
 import com.example.unipathapi.auth.entity.GoogleOnboardingSession;
 import com.example.unipathapi.auth.entity.UserAuthProvider;
 import com.example.unipathapi.auth.repository.GoogleOnboardingSessionRepository;
@@ -49,6 +50,64 @@ public class GoogleOnboardingService {
     private final UserAuthProviderRepository userAuthProviderRepository;
     private final SecureTokenService secureTokenService;
     private final JwtUtil jwtUtil;
+
+    /**
+     * Retrieves verified Google identity context for an active, unused, non-expired onboarding session
+     * without consuming the session yet (session is atomically consumed upon registration submission).
+     *
+     * @param rawOnboardingToken raw opaque onboarding token issued during ONBOARDING_REQUIRED
+     * @return verified GoogleOnboardingContextResponse (email, name, picture, expiresAt)
+     */
+    @Transactional(readOnly = true)
+    public GoogleOnboardingContextResponse getOnboardingContext(String rawOnboardingToken) {
+        if (rawOnboardingToken == null || rawOnboardingToken.trim().isEmpty()) {
+            throw new IllegalArgumentException("Onboarding token không được để trống");
+        }
+
+        String tokenHash = secureTokenService.hashToken(rawOnboardingToken.trim());
+        LocalDateTime now = LocalDateTime.now();
+
+        GoogleOnboardingSession session = onboardingSessionRepository.findByTokenHash(tokenHash)
+                .orElseThrow(() -> new IllegalArgumentException("Onboarding session không tồn tại hoặc không hợp lệ"));
+
+        if (Boolean.TRUE.equals(session.getIsUsed())) {
+            throw new IllegalStateException("Onboarding session đã được sử dụng");
+        }
+        if (session.getExpiresAt().isBefore(now)) {
+            throw new IllegalStateException("Onboarding session đã hết hạn");
+        }
+
+        String email = session.getEmail().trim().toLowerCase();
+        String googleSub = session.getGoogleSub();
+
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new IllegalStateException("Email đã tồn tại trong hệ thống");
+        }
+        if (userAuthProviderRepository.existsByProviderAndProviderUserId("GOOGLE", googleSub)) {
+            throw new IllegalStateException("Tài khoản Google này đã được liên kết với một tài khoản khác");
+        }
+
+        String safePicture = sanitizeDisplayPictureUrl(session.getPicture());
+
+        return GoogleOnboardingContextResponse.builder()
+                .email(email)
+                .name(session.getName() != null ? session.getName().trim() : null)
+                .picture(safePicture)
+                .expiresAt(session.getExpiresAt())
+                .build();
+    }
+
+    private String sanitizeDisplayPictureUrl(String picture) {
+        if (picture == null || picture.trim().isEmpty()) {
+            return null;
+        }
+        String trimmed = picture.trim();
+        String lower = trimmed.toLowerCase();
+        if ((lower.startsWith("https://") || lower.startsWith("http://")) && trimmed.length() <= 500) {
+            return trimmed;
+        }
+        return null;
+    }
 
     /**
      * Completes candidate registration using a valid Google onboarding session.

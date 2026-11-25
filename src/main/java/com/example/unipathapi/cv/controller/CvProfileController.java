@@ -15,7 +15,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/cv-profiles")
-@CrossOrigin(origins = "*")
 public class CvProfileController {
 
     @Autowired

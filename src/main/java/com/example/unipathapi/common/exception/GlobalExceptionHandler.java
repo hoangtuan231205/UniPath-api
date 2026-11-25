@@ -39,14 +39,40 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, status);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Object> handleIllegalStateException(IllegalStateException ex) {
+        String msg = ex.getMessage() != null ? ex.getMessage() : "Xung đột trạng thái yêu cầu";
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.CONFLICT.value());
+        body.put("error", HttpStatus.CONFLICT.getReasonPhrase());
+        body.put("message", msg);
+
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(com.example.unipathapi.auth.exception.GoogleServiceUnavailableException.class)
+    public ResponseEntity<Object> handleGoogleServiceUnavailable(com.example.unipathapi.auth.exception.GoogleServiceUnavailableException ex) {
+        String msg = ex.getMessage() != null ? ex.getMessage() : "Dịch vụ xác thực Google tạm thời không khả dụng";
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.SERVICE_UNAVAILABLE.value());
+        body.put("error", HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase());
+        body.put("message", msg);
+
+        return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Object> handleRuntimeException(RuntimeException ex) {
         String msg = ex.getMessage() != null ? ex.getMessage() : "Lỗi xử lý yêu cầu";
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
-        if (msg.startsWith("403:")) {
+        if (msg.startsWith("403:") || msg.contains("khoá") || msg.contains("khóa")) {
             status = HttpStatus.FORBIDDEN;
-            msg = msg.substring(4).trim();
+            if (msg.startsWith("403:")) {
+                msg = msg.substring(4).trim();
+            }
         } else if (msg.startsWith("404:")) {
             status = HttpStatus.NOT_FOUND;
             msg = msg.substring(4).trim();
@@ -115,6 +141,9 @@ public class GlobalExceptionHandler {
         } else if (lowerMsg.contains("company_locations_one_primary_per_company")) {
             status = HttpStatus.CONFLICT;
             userFriendlyMsg = "Công ty đã có địa điểm chính đang được cập nhật. Vui lòng thử lại.";
+        } else if (lowerMsg.contains("users_email_key") || lowerMsg.contains("uq_auth_provider") || lowerMsg.contains("user_auth_providers")) {
+            status = HttpStatus.CONFLICT;
+            userFriendlyMsg = "Email hoặc tài khoản Google này đã được đăng ký trong hệ thống.";
         }
 
         Map<String, Object> body = new LinkedHashMap<>();
@@ -126,13 +155,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, status);
     }
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGeneralException(Exception ex) {
+        log.error("Unhandled internal server error: ", ex);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         body.put("error", "Lỗi máy chủ");
-        body.put("message", ex.getMessage());
+
+        String msg = ex.getMessage();
+        if (msg == null || msg.toLowerCase().contains("sql") || msg.toLowerCase().contains("hibernate") || msg.toLowerCase().contains("could not execute statement") || msg.toLowerCase().contains("syntax error")) {
+            msg = "Đã xảy ra lỗi nội bộ máy chủ. Vui lòng liên hệ quản trị viên.";
+        }
+        body.put("message", msg);
 
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }

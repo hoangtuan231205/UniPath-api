@@ -18,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/jobs")
-@CrossOrigin(origins = "*")
 public class JobController {
 
     @Autowired

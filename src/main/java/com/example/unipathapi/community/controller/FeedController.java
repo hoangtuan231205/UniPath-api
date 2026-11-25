@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/feed")
-@CrossOrigin(origins = "*")
 public class FeedController {
 
     @Autowired

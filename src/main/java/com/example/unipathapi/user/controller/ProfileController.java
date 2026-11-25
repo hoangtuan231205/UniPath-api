@@ -15,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/profiles")
-@CrossOrigin(origins = "*")
 public class ProfileController {
 
     @Autowired

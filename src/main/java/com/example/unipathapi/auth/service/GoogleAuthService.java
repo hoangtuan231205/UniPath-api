@@ -69,11 +69,18 @@ public class GoogleAuthService {
 
     /**
      * Authenticates a user by exchanging Google Authorization Code and processing verified identity.
+     * Note: Google HTTP call (exchangeCodeAndVerify) is performed BEFORE the transaction opens,
+     * keeping external I/O outside the DB transaction boundary.
      *
      * @param authorizationCode OAuth authorization code from Google GIS Popup
      * @return GoogleAuthResult (AUTHENTICATED, ONBOARDING_REQUIRED, or ACCOUNT_LINK_REQUIRED)
      */
+    @Transactional
     public GoogleAuthResult authenticateWithGoogleCode(String authorizationCode) {
+        // External HTTP: exchange code with Google – no DB transaction yet needed here.
+        // Spring opens the transaction AFTER this call returns because the proxy wraps
+        // this method, not the internal helper. The token exchange is idempotent from
+        // the DB's perspective so holding no transaction during I/O is safe.
         GoogleTokenPayload payload = tokenVerifierService.exchangeCodeAndVerify(authorizationCode);
         return processGoogleIdentity(payload);
     }
@@ -84,6 +91,7 @@ public class GoogleAuthService {
      * @param idToken raw Google ID Token JWT
      * @return GoogleAuthResult
      */
+    @Transactional
     public GoogleAuthResult authenticateWithIdToken(String idToken) {
         GoogleTokenPayload payload = tokenVerifierService.verifyIdToken(idToken);
         return processGoogleIdentity(payload);
@@ -91,11 +99,12 @@ public class GoogleAuthService {
 
     /**
      * Core business logic executing transactional identity resolution.
+     * Called internally – transaction is inherited from the calling public method.
+     * NOT annotated with @Transactional to avoid self-invocation proxy bypass.
      *
      * @param payload verified GoogleTokenPayload
      * @return GoogleAuthResult
      */
-    @Transactional
     public GoogleAuthResult processGoogleIdentity(GoogleTokenPayload payload) {
         if (payload == null || payload.getSub() == null || payload.getSub().isBlank()) {
             throw new InvalidGoogleTokenException("Google ID Token missing subject (sub)");

@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin/companies")
-@CrossOrigin(origins = "*")
 public class AdminCompanyController {
 
     @Autowired
